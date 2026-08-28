@@ -5,7 +5,13 @@ import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglit
 
 import * as schema from "./schema";
 
-export type VeritabaniBaglantisi = NeonHttpDatabase<typeof schema> | PgliteDatabase<typeof schema>;
+/**
+ * İki sürücü de Drizzle'ın aynı sorgu API'sini sunar; birleşim tipi kullanmak ise
+ * her çağrıda TypeScript'i aşırı yüklüyor ve sorguları okunmaz hâle getiriyor.
+ * Bu yüzden tek bir tip üzerinden ilerleyip PGlite örneğini ona uyarlıyoruz.
+ * Kullandığımız yüzey (select/insert/update/delete ve `query`) her ikisinde ortak.
+ */
+export type VeritabaniBaglantisi = NeonHttpDatabase<typeof schema>;
 
 /**
  * Geliştirme ile üretim aynı SQL lehçesini kullanır ama farklı sürücülerle bağlanır.
@@ -40,7 +46,11 @@ function baglantiKur(): VeritabaniBaglantisi {
   const pglite = global_.__boztepePglite ?? new PGlite("./.pglite");
   if (process.env.NODE_ENV !== "production") global_.__boztepePglite = pglite;
 
-  return drizzlePglite(pglite, { schema, casing: "snake_case" });
+  const yerel: PgliteDatabase<typeof schema> = drizzlePglite(pglite, {
+    schema,
+    casing: "snake_case",
+  });
+  return yerel as unknown as VeritabaniBaglantisi;
 }
 
 export const db: VeritabaniBaglantisi = global_.__boztepeDb ?? baglantiKur();

@@ -5,6 +5,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 
+import type { VeritabaniBaglantisi } from "../lib/db";
 import * as schema from "../lib/db/schema";
 import { gecerliSifreUret, sifreOzetle } from "../lib/auth/sifre";
 import { sadelestir, slugOlustur } from "../lib/utils";
@@ -17,9 +18,17 @@ const adres = process.env.DATABASE_URL?.trim();
 const neonMu = Boolean(adres && /^postgres(ql)?:\/\//.test(adres));
 
 const pglite = neonMu ? null : new PGlite("./.pglite");
-const db = neonMu
-  ? drizzleNeon(neon(adres!), { schema, casing: "snake_case" })
-  : drizzlePglite(pglite!, { schema, casing: "snake_case" });
+
+/*
+ * İki sürücünün birleşim tipi, `.returning()` gibi aşırı yüklenmiş metotlarda
+ * TypeScript'i çıkmaza sokuyor. Uygulama tarafındaki `lib/db` ile aynı yaklaşımı
+ * izleyip tek bir tip üzerinden ilerliyoruz.
+ */
+const db = (
+  neonMu
+    ? drizzleNeon(neon(adres!), { schema, casing: "snake_case" })
+    : drizzlePglite(pglite!, { schema, casing: "snake_case" })
+) as unknown as VeritabaniBaglantisi;
 
 /* ------------------------------------------------------------------ */
 /* Yardımcılar                                                         */

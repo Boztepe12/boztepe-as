@@ -46,3 +46,6 @@ next-env.d.ts
 # ortam degiskenleri
 .env
 .env.local
+
+# gelistirme sunucusu ciktisi
+dev.log
