@@ -42,7 +42,19 @@ export type SeoAyari = { baslik: string; aciklama: string };
  * yeni eklenen bir anahtar). Sayfaların bu yüzden çökmemesi için her ayarın
  * makul bir varsayılanı burada duruyor.
  */
-const VARSAYILANLAR = {
+type AyarKumesi = {
+  iletisim: IletisimAyari;
+  hakkimizda: HakkimizdaAyari;
+  duyuru: DuyuruAyari;
+  sosyal: SosyalAyari;
+  seo: SeoAyari;
+};
+
+/*
+ * Tipi açıkça bildiriyoruz: `satisfies` ile bırakıldığında boş diziler `never[]`
+ * olarak çıkarılıyor ve `degerler.map(...)` çağrıları derlenmiyor.
+ */
+const VARSAYILANLAR: AyarKumesi = {
   iletisim: {
     firmaAdi: "Boztepe Ev Gereçleri İnşaat San. Tic. A.Ş.",
     kisaAd: "Boztepe A.Ş.",
@@ -52,20 +64,20 @@ const VARSAYILANLAR = {
     adres: "Malatya",
     haritaBaglantisi: "",
     calismaSaatleri: [{ gun: "Pazartesi - Cumartesi", saat: "09:00 - 19:00" }],
-  } satisfies IletisimAyari,
+  },
   hakkimizda: {
     baslik: "1963'ten beri evinizin yanında",
     kurulusYili: 1963,
     ozet: "",
     paragraflar: [],
     degerler: [],
-  } satisfies HakkimizdaAyari,
-  duyuru: { aktif: false, metin: "", baglanti: "" } satisfies DuyuruAyari,
-  sosyal: { facebook: "", instagram: "" } satisfies SosyalAyari,
+  },
+  duyuru: { aktif: false, metin: "", baglanti: "" },
+  sosyal: { facebook: "", instagram: "" },
   seo: {
     baslik: "Boztepe A.Ş. — Malatya Beyaz Eşya, Mobilya ve Halı Mağazası",
     aciklama: "1963'ten beri Malatya'da beyaz eşya, mobilya ve halı.",
-  } satisfies SeoAyari,
+  },
 };
 
 type AyarAnahtari = keyof typeof VARSAYILANLAR;

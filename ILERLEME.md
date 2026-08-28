@@ -20,7 +20,18 @@ npm run db:migrate    # Migrasyonları uygula (PGlite veya Neon)
 npm run db:seed       # Örnek veriyi yükle (mevcut veriyi siler)
 npm run db:reset      # Veritabanını sıfırla + migrate + seed
 npm run db:studio     # Drizzle Studio
+npm run db:unlock     # Kalmis PGlite kilidini temizle
 ```
+
+### PGlite hakkinda bilinmesi gerekenler
+
+PGlite tek yazicilidir: dev sunucusu calisirken `db:seed`, `db:migrate` veya baska bir
+betik ayni `.pglite` dizinini acamaz. Once dev sunucusunu durdurun.
+
+Dev sunucusu duzgun kapanmazsa (`taskkill`, ani cokme) geride bir `postmaster.pid`
+kilidi kalir ve sonraki acilis `Aborted()` hatasiyla duser. `npm run db:unlock` bunu
+temizler; veri dizini de bozulduysa `npm run db:reset` her seyi sifirdan kurar.
+Uretimde Neon kullanildigi icin bu kisit yalnizca gelistirmeyi ilgilendirir.
 
 ## Adımlar
 
