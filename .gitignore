@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# yerel PGlite veritabani
+.pglite/
+
+# ortam degiskenleri
+.env
+.env.local

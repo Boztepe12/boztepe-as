@@ -1,26 +1,127 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------
+   Boztepe A.Ş. — "Sıcak Minimal" tasarım dili
+   Krem zemin, antrasit metin, terracotta accent.
+   ------------------------------------------------------------------ */
+
+@theme {
+  /* Zemin ve yüzeyler */
+  --color-kum: #faf7f2;
+  --color-kum-koyu: #f3ede4;
+  --color-yuzey: #ffffff;
+
+  /* Metin */
+  --color-murekkep: #1f1d1b;
+  --color-murekkep-yumusak: #5a544e;
+  --color-solgun: #8b8279;
+
+  /* Çizgi ve kenarlıklar */
+  --color-cizgi: #e8e1d7;
+  --color-cizgi-koyu: #d6cbbb;
+
+  /* Accent — terracotta */
+  --color-kiremit: #b4553a;
+  --color-kiremit-koyu: #93412a;
+  --color-kiremit-acik: #f6e9e4;
+
+  /* Durum renkleri */
+  --color-onay: #4a7c59;
+  --color-uyari: #b8860b;
+  --color-hata: #b3261e;
+  --color-indirim: #c0392b;
+
+  /* Tipografi */
+  --font-baslik: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-govde: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Yumuşak gölgeler — sert kutu gölgesi yok, hep dağınık ve hafif */
+  --shadow-kart: 0 1px 2px rgb(31 29 27 / 0.04), 0 8px 24px -12px rgb(31 29 27 / 0.10);
+  --shadow-kart-hover: 0 2px 4px rgb(31 29 27 / 0.05), 0 16px 40px -16px rgb(31 29 27 / 0.16);
+  --shadow-panel: 0 24px 64px -32px rgb(31 29 27 / 0.28);
+
+  /* Köşe yuvarlaklığı — mobilyaya yakışır, yumuşak ama abartısız */
+  --radius-yumusak: 0.5rem;
+  --radius-kart: 0.875rem;
+  --radius-panel: 1.25rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    border-color: var(--color-cizgi);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-kum);
+    color: var(--color-murekkep);
+    font-family: var(--font-govde);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-baslik);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Klavye kullanıcıları için net odak halkası, fare tıklamasında görünmez */
+  :focus-visible {
+    outline: 2px solid var(--color-kiremit);
+    outline-offset: 2px;
+  }
+
+  /* Fiyat, IBAN, stok kodu gibi sayısal alanlarda rakamlar hizalı dursun */
+  .rakam {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Bölüm başlıklarının üstündeki ince kılavuz çizgi */
+  .kilavuz-cizgi::before {
+    content: "";
+    display: block;
+    width: 2.5rem;
+    height: 1px;
+    background-color: var(--color-kiremit);
+    margin-bottom: 1rem;
+  }
+
+  /* Görsel yüklenene kadar duran nazik parıltı */
+  .iskelet {
+    background: linear-gradient(
+      90deg,
+      var(--color-kum-koyu) 25%,
+      var(--color-cizgi) 37%,
+      var(--color-kum-koyu) 63%
+    );
+    background-size: 400% 100%;
+    animation: iskelet-kaydir 1.4s ease infinite;
+  }
+
+  @keyframes iskelet-kaydir {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
