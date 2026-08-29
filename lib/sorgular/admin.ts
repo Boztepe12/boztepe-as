@@ -389,3 +389,17 @@ export async function tumYoneticiler() {
 }
 
 export { inArray };
+
+/* ------------------------------------------------------------------ */
+/* Kategori ve marka tekil kayitlari                                   */
+/* ------------------------------------------------------------------ */
+
+export async function yoneticiKategoriGetir(id: number) {
+  const kayitlar = await db.select().from(kategoriler).where(eq(kategoriler.id, id)).limit(1);
+  return kayitlar[0] ?? null;
+}
+
+export async function yoneticiMarkaGetir(id: number) {
+  const kayitlar = await db.select().from(markalar).where(eq(markalar.id, id)).limit(1);
+  return kayitlar[0] ?? null;
+}
