@@ -5,9 +5,10 @@ Yeni bir oturum bu dosyayı ve `CLAUDE.md`'yi okuyarak devam edebilir.
 
 ---
 
-## ⏸️ NEREDE KALDIM (son güncelleme: 29 Ağustos 2026)
+## ⏸️ NEREDE KALDIM (son güncelleme: 29 Ağustos 2026, gece)
 
-**Vitrin (müşteri tarafı) bitti ve çalışıyor. Admin panelinin temeli atıldı, ekranları yarım.**
+**Vitrin bitti. Admin panelinde ürün yönetimi de bitti ve uçtan uca denendi.
+Sıradaki iş: talep (teklif) yönetimi ekranları.**
 
 ### Şu an çalışan hâli
 `npm run dev` → http://localhost:3000 açılıyor, tüm vitrin sayfaları gerçek veriyle geliyor.
@@ -29,24 +30,38 @@ ekranına yönlendiriliyor; bu test edildi.
 - `lib/storage/index.ts` — görsel yükleme soyutlaması (Cloudinary varsa Cloudinary,
   yoksa `public/yuklenenler` altına yerel disk)
 - `lib/eylemler/admin/urun.ts` — ürün kaydet/sil, durum değiştir, görsel yükle/sil/sırala,
-  toplu işlem. **Yazıldı ve derleniyor ama henüz hiçbir ekran tarafından kullanılmıyor,
-  yani çalışırken denenmedi.**
+  toplu işlem. Hepsi çalışan sunucuda gerçek isteklerle denendi.
+- **Ürün yönetimi ekranları (yeni):**
+  - `app/admin/(panel)/urunler/page.tsx` — liste; arama, kategori/marka/durum filtresi,
+    sayfalama, satır içi yayın anahtarı, öne çıkarma yıldızı, toplu işlem, boş durum
+  - `app/admin/(panel)/urunler/yeni/page.tsx` ve `.../[id]/page.tsx`
+  - `components/admin/urun-formu.tsx` — tüm alanlar + teknik özellik satırları + SEO
+  - `components/admin/gorsel-yonetimi.tsx` — çoklu yükleme, sıralama, silme, kapak rozeti
+  - `components/admin/urun-filtre-cubugu.tsx`, `urun-listesi.tsx`, `panel-sayfalama.tsx`
+
+**Denenenler (çalışan sunucuda, gerçek HTTP istekleriyle):** ürün ekleme, güncelleme,
+silme; Türkçe fiyat yazımının (`12.345,50`) doğru saklanması; slug ve arama metninin
+Türkçe karakterlerle doğru üretilmesi; indirimli fiyat > fiyat doğrulaması; görsel yükleme,
+sıralama, silme; ürün silinince görsel dosyalarının diskten de temizlenmesi; oturumsuz
+eylem çağrısının reddedilmesi. Tohum verisi bozulmadı (18 ürün).
 
 ### 👉 SIRADAKİ SOMUT ADIM
-`app/admin/(panel)/urunler/` altındaki ekranları yaz. Sunucu eylemleri ve sorgular hazır,
-tek eksik arayüz:
+`app/admin/(panel)/talepler/` altındaki ekranları yaz:
 
-1. `app/admin/(panel)/urunler/page.tsx` — ürün listesi
-   (`yoneticiUrunleri()` kullanılacak; arama, kategori/marka/durum filtresi, sayfalama,
-   satır içi yayınla-gizle anahtarı, toplu seçim)
-2. `app/admin/(panel)/urunler/yeni/page.tsx` ve `.../[id]/page.tsx` — ürün formu
-   (`formSecenekleri()` ile kategori/marka listesi, `urunKaydet()` ile kayıt;
-   düzenleme ekranında görsel yükleme ve özellik satırları da olacak)
-3. Ortak form bileşeni: `components/admin/urun-formu.tsx` (istemci bileşeni)
+1. `page.tsx` — talep listesi. Sorgu hazır: `yoneticiTalepleri(durum?, sayfa?)`
+   (durum sekmeleri için `sayimlar` da dönüyor). Rozet bileşeni `TalepDurumRozeti`
+   ve `TALEP_DURUM_LISTESI` `components/admin/panel-parcalari.tsx` içinde hazır.
+2. `[id]/page.tsx` — talep detayı: müşteri bilgisi, kalemler (`talepGetir(id)`),
+   WhatsApp'tan yanıt bağlantısı (`whatsappBaglantisi` yardımcısı var), durum değiştirme
+   ve yönetici notu.
+3. `lib/eylemler/admin/talep.ts` — **henüz yok, yazılacak**: `talepDurumGuncelle(id, durum)`,
+   `talepNotuKaydet(id, not)`, `talepSil(id)`. Örnek olarak `lib/eylemler/admin/urun.ts`
+   deseni izlenmeli (`eylemIcinOturum()` + zod + `revalidatePath`).
 
-Sonra sırasıyla: talepler → kategoriler → markalar → afişler → galeri → banka → ayarlar →
-hesap (şifre değiştirme). Hepsi için sorgular `lib/sorgular/admin.ts` içinde hazır;
-yalnızca kendi sunucu eylemleri (`lib/eylemler/admin/*.ts`) ve ekranları yazılacak.
+Sonra sırasıyla: kategoriler → markalar → afişler → galeri → banka → ayarlar →
+hesap (şifre değiştirme). Listeleme sorguları `lib/sorgular/admin.ts` içinde hazır
+(`tumKategoriler`, `tumMarkalar`, `tumAfisler`, `tumGaleri`, `tumBankaHesaplari`);
+yalnızca kendi sunucu eylemleri ve ekranları yazılacak.
 
 ### Bilinen tuzaklar (tekrar düşmemek için)
 - **PGlite tek yazıcıdır.** Dev sunucusu çalışırken `db:seed` / `db:migrate` çalışmaz.
@@ -63,6 +78,16 @@ yalnızca kendi sunucu eylemleri (`lib/eylemler/admin/*.ts`) ve ekranları yazı
   ikisini de yüklüyor.
 - **Drizzle birleşim tipi**: iki sürücünün tipini birleştirmek `.returning()` gibi
   metotlarda TypeScript'i kilitliyor; `lib/db/index.ts` tek tip üzerinden ilerliyor.
+- **Yeni route dosyası eklenince Turbopack bazen görmüyor**: dosya diskte olduğu hâlde
+  adres 404 dönüyor. Dosyaya dokunmak (`touch`) ya da dev sunucusunu yeniden başlatmak
+  yetiyor. Yani "404" mutlaka kod hatası demek değil.
+- **Sunucu eylemi hata fırlatırsa** (örneğin oturum düşmüşse `eylemIcinOturum` fırlatır)
+  istemci tarafında yakalanmazsa ekran hata sınırına düşüyor. Panel bileşenlerinde her
+  eylem çağrısı `try/catch` içinde ve kullanıcıya anlaşılır bir bildirim gösteriliyor.
+- **Fiyatlar Türkçe yazılıyor**: `12.345,50` girdisi sunucuda `12345.50`'ye çevriliyor
+  (`paraAlani` şeması). Formda gösterirken ters çevirmek gerekiyor — `urun-formu.tsx`
+  içindeki `paraGoster` bunu yapıyor. Veritabanı değerini doğrudan input'a basmayın,
+  binlik ayırıcı temizliği "24999.00" değerini 2.499.900 yapar.
 
 ---
 
@@ -151,10 +176,11 @@ Elle müdahale gerekirse: `npm run db:onar` (kontrol + gerekiyorsa onarım),
 ### Admin paneli — devam ediyor
 - [x] Giriş ekranı ve oturum koruması
 - [x] Panel yerleşimi ve özet ekranı
-- [ ] **Ürün yönetimi — SIRADAKİ İŞ** (sunucu eylemleri hazır, ekranlar yazılacak)
+- [x] Ürün yönetimi (liste, filtre, form, fotoğraflar, toplu işlem) — çalışırken denendi
+- [ ] **Talep yönetimi (durum takibi) — SIRADAKİ İŞ** (sorgular hazır, eylemler ve
+      ekranlar yazılacak)
 - [ ] Kategori ve marka yönetimi
 - [ ] Afiş / kampanya yönetimi
-- [ ] Talep yönetimi (durum takibi)
 - [ ] Galeri ve banka hesapları
 - [ ] Site ayarları
 - [ ] Şifre değiştirme
