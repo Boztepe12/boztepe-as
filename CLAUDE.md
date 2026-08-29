@@ -71,8 +71,8 @@ oturum önce onu okumalı.
 
 ## Bekleyen işler
 
-- [ ] GitHub reposu açılacak — `gh` kurulu ama giriş yapılmamış; GitHub MCP sunucusu
-      `.mcp.json` ile eklendi, OAuth yetkilendirmesi bekliyor
+- [x] GitHub reposu açıldı ve `main` dalı push'landı (`origin` = `pers:Boztepe12/boztepe-as.git`,
+      SSH alias `pers`). `gh` hâlâ giriş yapılmamış durumda; push SSH üzerinden çalışıyor.
 - [ ] Kullanıcıdan alınacaklar: logo, marka rengi onayı, firma bilgileri, IBAN listesi,
       "Hakkımızda" metni, gerçek ürün fotoğrafları, admin e-postası, domain yönlendirme kararı
 - [ ] Neon `DATABASE_URL` ve Cloudinary anahtarları — deploy anında lazım, geliştirme
