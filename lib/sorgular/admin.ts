@@ -403,3 +403,8 @@ export async function yoneticiMarkaGetir(id: number) {
   const kayitlar = await db.select().from(markalar).where(eq(markalar.id, id)).limit(1);
   return kayitlar[0] ?? null;
 }
+
+export async function yoneticiAfisGetir(id: number) {
+  const kayitlar = await db.select().from(afisler).where(eq(afisler.id, id)).limit(1);
+  return kayitlar[0] ?? null;
+}
