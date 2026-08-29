@@ -56,6 +56,13 @@ export function SepetSaglayici({ children }: { children: ReactNode }) {
       const ham = window.localStorage.getItem(DEPO_ANAHTARI);
       if (ham) {
         const cozulen = JSON.parse(ham);
+        /*
+         * localStorage sunucuda yok; sepeti ancak tarayıcıya bağlandıktan sonra
+         * okuyabiliyoruz. Kural bunu "efekt içinde setState" diye işaretliyor ama
+         * burada yapılan tam olarak dış bir sistemle eşitlenmek — ve bu yalnızca
+         * ilk bağlanmada bir kez oluyor.
+         */
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (Array.isArray(cozulen)) setKalemler(cozulen.filter(gecerliKalem));
       }
     } catch {

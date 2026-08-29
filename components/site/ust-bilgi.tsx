@@ -36,12 +36,18 @@ export function UstBilgi({
   const [aramaTerimi, setAramaTerimi] = useState("");
   const aramaGirdisi = useRef<HTMLInputElement>(null);
 
-  /* Sayfa değişince açık kalan menüler kapanmalı. */
-  useEffect(() => {
+  /*
+   * Sayfa değişince açık kalan menüler kapanmalı. Bunu efekt içinde yapmak menünün
+   * bir kare boyunca açık görünmesine ve fazladan bir render'a yol açıyor; React'in
+   * önerdiği yol, değişikliği render sırasında fark edip durumu hemen düzeltmek.
+   */
+  const [oncekiYol, setOncekiYol] = useState(yol);
+  if (yol !== oncekiYol) {
+    setOncekiYol(yol);
     setMobilAcik(false);
     setAcikKategori(null);
     setAramaAcik(false);
-  }, [yol]);
+  }
 
   /* Mobil menü açıkken arka planın kaymasını engelle. */
   useEffect(() => {

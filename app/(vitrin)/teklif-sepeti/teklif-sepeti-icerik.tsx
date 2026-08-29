@@ -10,7 +10,7 @@ import { useSepet } from "@/components/sepet/sepet-durumu";
 import { WhatsappSimgesi } from "@/components/site/marka-simgeleri";
 import { Buton, ButonBaglanti, DisBaglanti } from "@/components/ui/buton";
 import { BosDurum } from "@/components/ui/durum";
-import { Alan, AlanIzgarasi, Girdi, MetinKutusu } from "@/components/ui/form";
+import { Alan, Girdi, MetinKutusu } from "@/components/ui/form";
 import { talepOlustur } from "@/lib/eylemler/talep";
 import { fiyatBicimle, whatsappBaglantisi } from "@/lib/utils";
 
