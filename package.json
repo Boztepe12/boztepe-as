@@ -4,15 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "node scripts/db-kontrol.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
-    "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "node -e \"require('fs').rmSync('.pglite',{recursive:true,force:true})\" && npm run db:migrate && npm run db:seed",
+    "db:onar": "node scripts/db-kontrol.mjs",
     "db:unlock": "node -e \"require('fs').rmSync('.pglite/postmaster.pid',{force:true})\"",
+    "db:studio": "drizzle-kit studio",
     "sohbet:kaydet": "node scripts/sohbet-disari-aktar.mjs"
   },
   "dependencies": {

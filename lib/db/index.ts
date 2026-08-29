@@ -3,6 +3,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 
+import { kalmisKilidiTemizle } from "./kilit";
 import * as schema from "./schema";
 
 /**
@@ -36,15 +37,43 @@ export const neonKullaniliyor = Boolean(baglantiAdresi && /^postgres(ql)?:\/\//.
 const global_ = globalThis as unknown as {
   __boztepePglite?: PGlite;
   __boztepeDb?: VeritabaniBaglantisi;
+  __boztepeKapanisKurulu?: boolean;
 };
+
+/**
+ * PGlite yalnızca düzgün kapatıldığında veri dizinini sağlam bırakır; süreç aniden
+ * sonlanırsa dizin bozulabiliyor ve sonraki açılışta bütün sorgular düşüyor.
+ * Ctrl+C ile durdurmak en sık kullanılan yol olduğundan, o sinyali yakalayıp
+ * veritabanını kapatıyoruz. (Zorla sonlandırma yakalanamaz — onun için
+ * `npm run dev` öncesi çalışan `scripts/db-kontrol.mjs` onarımı üstleniyor.)
+ */
+function kapanistaKapat(pglite: PGlite) {
+  if (global_.__boztepeKapanisKurulu) return;
+  global_.__boztepeKapanisKurulu = true;
+
+  const kapat = () => {
+    void pglite
+      .close()
+      .catch(() => {})
+      .finally(() => process.exit(0));
+  };
+
+  process.once("SIGINT", kapat);
+  process.once("SIGTERM", kapat);
+}
 
 function baglantiKur(): VeritabaniBaglantisi {
   if (neonKullaniliyor) {
     return drizzleNeon(neon(baglantiAdresi!), { schema, casing: "snake_case" });
   }
 
+  if (!global_.__boztepePglite) kalmisKilidiTemizle();
+
   const pglite = global_.__boztepePglite ?? new PGlite("./.pglite");
-  if (process.env.NODE_ENV !== "production") global_.__boztepePglite = pglite;
+  if (process.env.NODE_ENV !== "production") {
+    global_.__boztepePglite = pglite;
+    kapanistaKapat(pglite);
+  }
 
   const yerel: PgliteDatabase<typeof schema> = drizzlePglite(pglite, {
     schema,

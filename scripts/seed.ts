@@ -9,6 +9,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 
+import { kalmisKilidiTemizle } from "../lib/db/kilit";
 import type { VeritabaniBaglantisi } from "../lib/db";
 import * as schema from "../lib/db/schema";
 import { gecerliSifreUret, sifreOzetle } from "../lib/auth/sifre";
@@ -21,6 +22,7 @@ import { sadelestir, slugOlustur } from "../lib/utils";
 const adres = process.env.DATABASE_URL?.trim();
 const neonMu = Boolean(adres && /^postgres(ql)?:\/\//.test(adres));
 
+if (!neonMu) kalmisKilidiTemizle();
 const pglite = neonMu ? null : new PGlite("./.pglite");
 
 /*

@@ -11,6 +11,8 @@ import { migrate as neonMigrate } from "drizzle-orm/neon-http/migrator";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { migrate as pgliteMigrate } from "drizzle-orm/pglite/migrator";
 
+import { kalmisKilidiTemizle } from "../lib/db/kilit";
+
 /**
  * `drizzle/` altındaki SQL migrasyonlarını hedef veritabanına uygular.
  *
@@ -30,6 +32,7 @@ async function calistir() {
     return;
   }
 
+  kalmisKilidiTemizle();
   console.log("→ Yerel PGlite veritabanına migrasyon uygulanıyor (./.pglite)...");
   const pglite = new PGlite("./.pglite");
   const db = drizzlePglite(pglite);

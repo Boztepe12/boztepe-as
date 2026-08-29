@@ -100,10 +100,27 @@ npm run db:unlock     # Kalmış PGlite kilidini temizle
 PGlite tek yazıcılıdır: dev sunucusu çalışırken `db:seed`, `db:migrate` veya başka bir
 betik aynı `.pglite` dizinini açamaz. Önce dev sunucusunu durdurun.
 
-Dev sunucusu düzgün kapanmazsa (`taskkill`, ani çökme) geride bir `postmaster.pid`
-kilidi kalır ve sonraki açılış `Aborted()` hatasıyla düşer. `npm run db:unlock` bunu
-temizler; veri dizini de bozulduysa `npm run db:reset` her şeyi sıfırdan kurar.
-Üretimde Neon kullanıldığı için bu kısıt yalnızca geliştirmeyi ilgilendirir.
+PGlite ayrıca yalnızca **düzgün kapatılırsa** sağlam kalır. Süreç zorla sonlandırılırsa
+(`taskkill /F`, bilgisayarın ani kapanması) veri dizini bozulabiliyor. Bozulmanın belirtisi
+yanıltıcıdır: sunucu sorunsuz ayağa kalkar, ama her sayfa 500 döner ve logda
+`Failed query ... cause: Aborted()` görünür.
+
+Bunun için üç katmanlı koruma var:
+
+1. **`npm run dev` öncesi otomatik kontrol** (`scripts/db-kontrol.mjs`, `predev` olarak
+   bağlı). Dizini yoklar; okunamıyorsa `.pglite-bozuk-<zaman>` adına taşıyıp sıfırdan
+   kurar. Yönetici bilgileri `.env.local` içindeki `ADMIN_EPOSTA` / `ADMIN_SIFRE`
+   değerlerinden geldiği için giriş bilgisi her onarımda aynı kalır.
+2. **Çalışan sunucu koruması.** Dizinin meşgul olması da tıpkı bozulma gibi `Aborted()`
+   verdiği için kontrol, önce dev portuna bağlanmayı deneyip çalışan bir sunucu olup
+   olmadığına bakar; varsa hiçbir şeye dokunmadan çıkar. Dizin yeniden adlandırılamıyorsa
+   da (yani kullanımdaysa) silmek yerine hata verip durur.
+3. **Ctrl+C kancası.** `lib/db/index.ts`, SIGINT/SIGTERM yakalayıp PGlite'ı düzgün
+   kapatır; normal durdurma artık bozulmaya yol açmaz.
+
+Elle müdahale gerekirse: `npm run db:onar` (kontrol + gerekiyorsa onarım),
+`npm run db:unlock` (yalnızca kilidi temizle), `npm run db:reset` (koşulsuz sıfırla).
+Üretimde Neon kullanıldığı için bu kısıtların hiçbiri canlı siteyi ilgilendirmez.
 
 ## Adımlar
 
