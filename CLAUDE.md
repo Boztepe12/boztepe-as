@@ -63,6 +63,12 @@ yapılabilmeli.
 - Türkçe içerik ve Türkçe arayüz esas. Arama Türkçe karakter duyarsız çalışmalı.
 - Git: `main` dalı, remote `pers:Boztepe12/boztepe-as.git` (SSH alias `pers` = kişisel hesap).
 
+## Durum
+
+Vitrin ve yönetim paneli tamamlandı; `npm run build` hatasız çalışıyor. Nerede kalındığı,
+ekran ekran ne yapıldığı ve bilinen tuzaklar `ILERLEME.md` içinde tutuluyor — yeni bir
+oturum önce onu okumalı.
+
 ## Bekleyen işler
 
 - [ ] GitHub reposu açılacak — `gh` kurulu ama giriş yapılmamış; GitHub MCP sunucusu

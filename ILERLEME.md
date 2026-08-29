@@ -5,63 +5,56 @@ Yeni bir oturum bu dosyayı ve `CLAUDE.md`'yi okuyarak devam edebilir.
 
 ---
 
-## ⏸️ NEREDE KALDIM (son güncelleme: 29 Ağustos 2026, gece)
+## ⏸️ NEREDE KALDIM (son güncelleme: 30 Ağustos 2026)
 
-**Vitrin bitti. Admin panelinde ürün yönetimi de bitti ve uçtan uca denendi.
-Sıradaki iş: talep (teklif) yönetimi ekranları.**
+**Vitrin ve admin paneli bitti. Panelin on ekranı da çalışıyor ve gerçek isteklerle
+denendi. Üretim derlemesi (`npm run build`) hatasız. Sıradaki iş: yayına alma (deploy)
+hazırlığı ve kullanıcıdan beklenen içeriklerin girilmesi.**
 
 ### Şu an çalışan hâli
-`npm run dev` → http://localhost:3000 açılıyor, tüm vitrin sayfaları gerçek veriyle geliyor.
-Yönetici girişi çalışıyor: `/admin/giris` → `admin@boztepeas.com` / `BoztepeAdmin2026`
-(yalnızca yerel geliştirme şifresi). Giriş yapılmadan `/admin` adresine gidilirse giriş
-ekranına yönlendiriliyor; bu test edildi.
+`npm run dev` → http://localhost:3000. Vitrinin tamamı ve yönetim panelinin tamamı
+gerçek veriyle çalışıyor. Yönetici girişi: `/admin/giris` → `admin@boztepeas.com` /
+`BoztepeAdmin2026` (yalnızca yerel geliştirme şifresi). Giriş yapılmadan panele
+gidilirse giriş ekranına yönlendiriliyor.
 
-### Admin panelinde BİTEN
-- `lib/auth/giris.ts` — giriş/çıkış sunucu eylemleri, deneme sınırlama, zamanlama saldırısına
-  karşı sabit süreli şifre karşılaştırma
-- `lib/auth/koruma.ts` — `oturumZorunlu`, `adminZorunlu`, `eylemIcinOturum`
-- `app/admin/giris/` — giriş ekranı ve formu
-- `app/admin/(panel)/layout.tsx` — oturum koruması + panel kabuğu
-- `app/admin/(panel)/page.tsx` — özet ekranı (sayı kutuları, dikkat gerektirenler, son talepler)
-- `components/admin/panel-kabuk.tsx` — kenar menü, mobil çekmece, çıkış
-- `components/admin/panel-parcalari.tsx` — `SayfaBasligi`, `OzetKutusu`, `Panel`,
-  `TalepDurumRozeti`, `TabloSarmali`
-- `lib/sorgular/admin.ts` — panel özeti, ürün/talep listeleme, form seçenekleri, tüm listeler
-- `lib/storage/index.ts` — görsel yükleme soyutlaması (Cloudinary varsa Cloudinary,
-  yoksa `public/yuklenenler` altına yerel disk)
-- `lib/eylemler/admin/urun.ts` — ürün kaydet/sil, durum değiştir, görsel yükle/sil/sırala,
-  toplu işlem. Hepsi çalışan sunucuda gerçek isteklerle denendi.
-- **Ürün yönetimi ekranları (yeni):**
-  - `app/admin/(panel)/urunler/page.tsx` — liste; arama, kategori/marka/durum filtresi,
-    sayfalama, satır içi yayın anahtarı, öne çıkarma yıldızı, toplu işlem, boş durum
-  - `app/admin/(panel)/urunler/yeni/page.tsx` ve `.../[id]/page.tsx`
-  - `components/admin/urun-formu.tsx` — tüm alanlar + teknik özellik satırları + SEO
-  - `components/admin/gorsel-yonetimi.tsx` — çoklu yükleme, sıralama, silme, kapak rozeti
-  - `components/admin/urun-filtre-cubugu.tsx`, `urun-listesi.tsx`, `panel-sayfalama.tsx`
+### Panelde biten ekranlar
+| Ekran | Neler yapılabiliyor |
+|---|---|
+| Özet | Sayılar, dikkat gerektiren ürünler, son talepler |
+| Ürünler | Arama, kategori/marka/durum filtresi, sayfalama, satır içi yayın anahtarı, öne çıkarma, toplu yayınla/gizle/sil |
+| Ürün formu | Tüm alanlar, Türkçe fiyat yazımı, teknik özellik satırları, SEO, çoklu fotoğraf yükleme/sıralama/silme |
+| Talepler | Durum sekmeleri ve sayaçlar, toplu durum değişimi |
+| Talep detayı | Müşteri bilgisi, hazır mesajlı WhatsApp bağlantısı, kalemler ve tutar, durum, yönetici notu |
+| Kategoriler | İki seviyeli liste, yayın ve "ana sayfada göster" anahtarları, görsel, silme kuralları |
+| Markalar | Liste, logo, yayın anahtarı, silme kuralları |
+| Afişler | Liste, form (tarih aralığı, bağlantı, buton), masaüstü + mobil görsel |
+| Galeri | Çoklu yükleme, başlık, yayın durumu, sıralama, silme |
+| Banka hesapları | Satır içi düzenleme, IBAN doğrulama (TR + 24 hane) |
+| Site ayarları | İletişim, çalışma saatleri, duyuru çubuğu, sosyal medya, hakkımızda metinleri, SEO |
+| Hesabım | Ad/e-posta güncelleme, şifre değiştirme |
 
-**Denenenler (çalışan sunucuda, gerçek HTTP istekleriyle):** ürün ekleme, güncelleme,
-silme; Türkçe fiyat yazımının (`12.345,50`) doğru saklanması; slug ve arama metninin
-Türkçe karakterlerle doğru üretilmesi; indirimli fiyat > fiyat doğrulaması; görsel yükleme,
-sıralama, silme; ürün silinince görsel dosyalarının diskten de temizlenmesi; oturumsuz
-eylem çağrısının reddedilmesi. Tohum verisi bozulmadı (18 ürün).
+Sunucu eylemleri: `lib/eylemler/admin/` altında `urun.ts`, `talep.ts`, `katalog.ts`
+(kategori + marka), `icerik.ts` (afiş + galeri + banka), `ayarlar.ts` (site ayarları +
+hesap). Hepsi `eylemIcinOturum()` ile korunuyor, zod ile doğruluyor ve `revalidatePath`
+ile vitrini tazeliyor.
 
 ### 👉 SIRADAKİ SOMUT ADIM
-`app/admin/(panel)/talepler/` altındaki ekranları yaz:
+Yayına alma hazırlığı. Sırasıyla:
 
-1. `page.tsx` — talep listesi. Sorgu hazır: `yoneticiTalepleri(durum?, sayfa?)`
-   (durum sekmeleri için `sayimlar` da dönüyor). Rozet bileşeni `TalepDurumRozeti`
-   ve `TALEP_DURUM_LISTESI` `components/admin/panel-parcalari.tsx` içinde hazır.
-2. `[id]/page.tsx` — talep detayı: müşteri bilgisi, kalemler (`talepGetir(id)`),
-   WhatsApp'tan yanıt bağlantısı (`whatsappBaglantisi` yardımcısı var), durum değiştirme
-   ve yönetici notu.
-3. `lib/eylemler/admin/talep.ts` — **henüz yok, yazılacak**: `talepDurumGuncelle(id, durum)`,
-   `talepNotuKaydet(id, not)`, `talepSil(id)`. Örnek olarak `lib/eylemler/admin/urun.ts`
-   deseni izlenmeli (`eylemIcinOturum()` + zod + `revalidatePath`).
+1. **Neon veritabanı**: ücretsiz proje açılıp `DATABASE_URL` alınacak, `.env.local` ve
+   Vercel ortam değişkenlerine yazılacak, `npm run db:migrate` + `npm run db:seed`
+   çalıştırılacak. (Seed yönetici hesabını `.env.local` içindeki `ADMIN_EPOSTA` /
+   `ADMIN_SIFRE` değerlerinden kuruyor — canlıda güçlü bir şifre girilmeli.)
+2. **Cloudinary**: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+   Anahtarlar yokken yüklenen görseller `public/yuklenenler` altına düşüyor ve Vercel'in
+   dosya sistemi salt okunur olduğu için canlıda çalışmaz.
+3. **`OTURUM_GIZLI_ANAHTAR`**: canlı için en az 32 karakterlik yeni bir rastgele değer.
+4. **Vercel projesi**: repo bağlanacak, ortam değişkenleri girilecek, ilk deploy.
+5. **README'ye deploy notları** yazılacak (şu an yok).
+6. Kullanıcıdan gelen içerikler panele girilecek: logo, gerçek fotoğraflar, IBAN listesi,
+   iletişim bilgileri, hakkımızda metni.
 
-Sonra sırasıyla: kategoriler → markalar → afişler → galeri → banka → ayarlar →
-hesap (şifre değiştirme). Listeleme sorguları `lib/sorgular/admin.ts` içinde hazır
-(`tumKategoriler`, `tumMarkalar`, `tumAfisler`, `tumGaleri`, `tumBankaHesaplari`);
-yalnızca kendi sunucu eylemleri ve ekranları yazılacak.
+Kod tarafında bekleyen bir eksik yok; panelin ekranları tamamlandı.
 
 ### Bilinen tuzaklar (tekrar düşmemek için)
 - **PGlite tek yazıcıdır.** Dev sunucusu çalışırken `db:seed` / `db:migrate` çalışmaz.
@@ -142,6 +135,9 @@ Bunun için üç katmanlı koruma var:
    da (yani kullanımdaysa) silmek yerine hata verip durur.
 3. **Ctrl+C kancası.** `lib/db/index.ts`, SIGINT/SIGTERM yakalayıp PGlite'ı düzgün
    kapatır; normal durdurma artık bozulmaya yol açmaz.
+4. **Kilit sahipliği.** Dizini açan süreç kimliğini `.pglite-sahip.json` dosyasına yazar.
+   Kilit yalnızca o süreç artık yaşamıyorsa temizlenir; böylece Next'in yardımcı süreçleri
+   çalışan sunucunun kilidini "sahipsiz" sanıp silemez (`lib/db/kilit.ts`).
 
 Elle müdahale gerekirse: `npm run db:onar` (kontrol + gerekiyorsa onarım),
 `npm run db:unlock` (yalnızca kilidi temizle), `npm run db:reset` (koşulsuz sıfırla).
@@ -173,22 +169,23 @@ Elle müdahale gerekirse: `npm run db:onar` (kontrol + gerekiyorsa onarım),
 - [x] Kampanyalar, hakkımızda, galeri, iletişim, markalar, 404
 - [x] SEO: sitemap (53 girdi), robots
 
-### Admin paneli — devam ediyor
+### Admin paneli — tamamlandı
 - [x] Giriş ekranı ve oturum koruması
 - [x] Panel yerleşimi ve özet ekranı
-- [x] Ürün yönetimi (liste, filtre, form, fotoğraflar, toplu işlem) — çalışırken denendi
-- [ ] **Talep yönetimi (durum takibi) — SIRADAKİ İŞ** (sorgular hazır, eylemler ve
-      ekranlar yazılacak)
-- [ ] Kategori ve marka yönetimi
-- [ ] Afiş / kampanya yönetimi
-- [ ] Galeri ve banka hesapları
-- [ ] Site ayarları
-- [ ] Şifre değiştirme
+- [x] Ürün yönetimi (liste, filtre, form, fotoğraflar, toplu işlem)
+- [x] Talep yönetimi (durum takibi, yönetici notu, WhatsApp'tan dönüş)
+- [x] Kategori ve marka yönetimi
+- [x] Afiş / kampanya yönetimi
+- [x] Galeri ve banka hesapları
+- [x] Site ayarları
+- [x] Hesap bilgileri ve şifre değiştirme
 
 ### Kapanış
-- [ ] Üretim derlemesi (`npm run build`) hatasız — henüz hiç çalıştırılmadı
-- [ ] Erişilebilirlik ve mobil kontrolü
+- [x] Üretim derlemesi (`npm run build`) hatasız — 42 sayfa üretiliyor, uyarı yok
+- [x] `npx eslint` ve `npx tsc --noEmit` temiz
+- [ ] Erişilebilirlik ve mobil kontrolü (gerçek cihazda gözden geçirilmedi)
 - [ ] Deploy notları (`README.md`)
+- [ ] Neon + Cloudinary + Vercel kurulumu
 
 ## Kullanıcıdan beklenenler
 
