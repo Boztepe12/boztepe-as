@@ -79,6 +79,103 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
     );
   }
 
+  /* --- Satır parçaları: hem kart hem tablo düzeninde kullanılıyor --- */
+
+  function Gorsel({ urun, boyut }: { urun: ListeUrunu; boyut: "kucuk" | "orta" }) {
+    return (
+      <div
+        className={cn(
+          "relative shrink-0 overflow-hidden rounded-yumusak border border-cizgi bg-kum",
+          boyut === "orta" ? "size-16" : "size-12",
+        )}
+      >
+        {urun.gorselUrl ? (
+          <Image
+            src={urun.gorselUrl}
+            alt=""
+            fill
+            sizes={boyut === "orta" ? "64px" : "48px"}
+            className="object-cover"
+          />
+        ) : (
+          <ImageOff className="absolute left-1/2 top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 text-solgun" />
+        )}
+      </div>
+    );
+  }
+
+  function Fiyat({ urun }: { urun: ListeUrunu }) {
+    const yuzde = indirimYuzdesi(urun.fiyat, urun.indirimliFiyat);
+
+    if (urun.fiyatGizli) return <Rozet ton="notr">Fiyat gizli</Rozet>;
+
+    if (urun.indirimliFiyat) {
+      return (
+        <>
+          <p className="rakam font-medium text-indirim">{fiyatBicimle(urun.indirimliFiyat)}</p>
+          <p className="rakam text-xs text-solgun">
+            <span className="line-through">{fiyatBicimle(urun.fiyat)}</span>
+            {yuzde !== null && <span className="ml-1">%{yuzde}</span>}
+          </p>
+        </>
+      );
+    }
+
+    return <p className="rakam font-medium text-murekkep">{fiyatBicimle(urun.fiyat)}</p>;
+  }
+
+  function Anahtarlar({ urun }: { urun: ListeUrunu }) {
+    return (
+      <div className="flex items-center gap-2">
+        <YayinAnahtari
+          acik={urun.aktif}
+          beklemede={islemde}
+          etiket={`${urun.ad} yayın durumu`}
+          onDegis={(yeni) => calistir(() => urunDurumDegistir(urun.id, "aktif", yeni))}
+        />
+        <button
+          type="button"
+          disabled={islemde}
+          onClick={() => calistir(() => urunDurumDegistir(urun.id, "oneCikan", !urun.oneCikan))}
+          title={urun.oneCikan ? "Öne çıkarılmış" : "Öne çıkar"}
+          aria-label={urun.oneCikan ? "Öne çıkarmayı kaldır" : "Öne çıkar"}
+          aria-pressed={urun.oneCikan}
+          className="rounded-yumusak p-2 transition-colors md:p-1.5 hover:bg-kum-koyu disabled:opacity-50"
+        >
+          <Star
+            className={cn("size-4", urun.oneCikan ? "fill-kiremit text-kiremit" : "text-solgun")}
+          />
+        </button>
+      </div>
+    );
+  }
+
+  function Islemler({ urun }: { urun: ListeUrunu }) {
+    return (
+      <div className="flex items-center gap-1">
+        <Link
+          href={`/admin/urunler/${urun.id}`}
+          aria-label={`${urun.ad} düzenle`}
+          className="rounded-yumusak p-2.5 text-murekkep-yumusak md:p-2 transition-colors hover:bg-kum-koyu hover:text-murekkep"
+        >
+          <Pencil className="size-4" />
+        </Link>
+        <button
+          type="button"
+          disabled={islemde}
+          aria-label={`${urun.ad} sil`}
+          onClick={() => {
+            const onay = window.confirm(`"${urun.ad}" kalıcı olarak silinecek. Devam edilsin mi?`);
+            if (onay) calistir(() => urunSil(urun.id));
+          }}
+          className="rounded-yumusak p-2.5 text-murekkep-yumusak md:p-2 transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-50"
+        >
+          <Trash2 className="size-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       {secili.length > 0 && (
@@ -86,7 +183,7 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
           <span className="text-sm font-medium text-murekkep">
             <span className="rakam">{secili.length}</span> ürün seçildi
           </span>
-          <div className="ml-auto flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
             <Buton
               type="button"
               gorunum="ikincil"
@@ -122,7 +219,65 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
         </div>
       )}
 
-      <div className="rounded-kart border border-cizgi bg-yuzey">
+      {/* Telefon: kart listesi. Tablo dar ekranda yana kaydırma gerektiriyor,
+          kartlar tek elle kullanıma uygun. */}
+      <div className="space-y-3 md:hidden">
+        <label className="flex items-center gap-2 px-1 text-sm text-murekkep-yumusak">
+          <input
+            type="checkbox"
+            className="size-4 accent-kiremit"
+            checked={hepsiSecili}
+            onChange={() => setSecili(hepsiSecili ? [] : urunler.map((urun) => urun.id))}
+          />
+          Tümünü seç
+        </label>
+
+        {urunler.map((urun) => (
+          <article
+            key={urun.id}
+            className={cn(
+              "rounded-kart border bg-yuzey p-4",
+              secili.includes(urun.id) ? "border-kiremit" : "border-cizgi",
+            )}
+          >
+            <div className="flex gap-3">
+              <input
+                type="checkbox"
+                className="mt-1 size-4 shrink-0 accent-kiremit"
+                checked={secili.includes(urun.id)}
+                onChange={() => secimDegistir(urun.id)}
+                aria-label={`${urun.ad} seç`}
+              />
+              <Gorsel urun={urun} boyut="orta" />
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`/admin/urunler/${urun.id}`}
+                  className="block font-medium leading-snug text-murekkep hover:text-kiremit"
+                >
+                  {urun.ad}
+                </Link>
+                <p className="mt-0.5 truncate text-xs text-solgun">
+                  {[urun.kategoriAdi, urun.markaAdi].filter(Boolean).join(" · ") || "—"}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <div>
+                    <Fiyat urun={urun} />
+                  </div>
+                  <StokRozeti durum={urun.stokDurumu} />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between border-t border-cizgi pt-3">
+              <Anahtarlar urun={urun} />
+              <Islemler urun={urun} />
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* Tablet ve masaüstü: tablo */}
+      <div className="hidden rounded-kart border border-cizgi bg-yuzey md:block">
         <TabloSarmali>
           <thead>
             <tr className="border-b border-cizgi text-left text-xs uppercase tracking-wider text-solgun">
@@ -144,141 +299,66 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
             </tr>
           </thead>
           <tbody>
-            {urunler.map((urun) => {
-              const yuzde = indirimYuzdesi(urun.fiyat, urun.indirimliFiyat);
+            {urunler.map((urun) => (
+              <tr
+                key={urun.id}
+                className={cn(
+                  "border-b border-cizgi last:border-0 hover:bg-kum",
+                  secili.includes(urun.id) && "bg-kiremit-acik/50",
+                )}
+              >
+                <td className="px-4 py-3">
+                  <input
+                    type="checkbox"
+                    className="size-4 accent-kiremit"
+                    checked={secili.includes(urun.id)}
+                    onChange={() => secimDegistir(urun.id)}
+                    aria-label={`${urun.ad} seç`}
+                  />
+                </td>
 
-              return (
-                <tr
-                  key={urun.id}
-                  className={cn(
-                    "border-b border-cizgi last:border-0 hover:bg-kum",
-                    secili.includes(urun.id) && "bg-kiremit-acik/50",
-                  )}
-                >
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      className="size-4 accent-kiremit"
-                      checked={secili.includes(urun.id)}
-                      onChange={() => secimDegistir(urun.id)}
-                      aria-label={`${urun.ad} seç`}
-                    />
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative size-12 shrink-0 overflow-hidden rounded-yumusak border border-cizgi bg-kum">
-                        {urun.gorselUrl ? (
-                          <Image
-                            src={urun.gorselUrl}
-                            alt=""
-                            fill
-                            sizes="48px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <ImageOff className="absolute left-1/2 top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 text-solgun" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <Link
-                          href={`/admin/urunler/${urun.id}`}
-                          className="block truncate font-medium text-murekkep hover:text-kiremit"
-                        >
-                          {urun.ad}
-                        </Link>
-                        <p className="rakam truncate text-xs text-solgun">
-                          {urun.stokKodu ? `${urun.stokKodu} · ` : ""}
-                          {tarihSaatBicimle(urun.guncellemeTarihi)}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-4 py-3 text-murekkep-yumusak">
-                    <p className="truncate">{urun.kategoriAdi ?? "—"}</p>
-                    <p className="truncate text-xs text-solgun">{urun.markaAdi ?? "—"}</p>
-                  </td>
-
-                  <td className="px-4 py-3">
-                    {urun.fiyatGizli ? (
-                      <Rozet ton="notr">Fiyat gizli</Rozet>
-                    ) : urun.indirimliFiyat ? (
-                      <>
-                        <p className="rakam font-medium text-indirim">
-                          {fiyatBicimle(urun.indirimliFiyat)}
-                        </p>
-                        <p className="rakam text-xs text-solgun">
-                          <span className="line-through">{fiyatBicimle(urun.fiyat)}</span>
-                          {yuzde !== null && <span className="ml-1">%{yuzde}</span>}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="rakam font-medium text-murekkep">{fiyatBicimle(urun.fiyat)}</p>
-                    )}
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <StokRozeti durum={urun.stokDurumu} />
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <YayinAnahtari
-                        acik={urun.aktif}
-                        beklemede={islemde}
-                        etiket={`${urun.ad} yayın durumu`}
-                        onDegis={(yeni) => calistir(() => urunDurumDegistir(urun.id, "aktif", yeni))}
-                      />
-                      <button
-                        type="button"
-                        disabled={islemde}
-                        onClick={() =>
-                          calistir(() => urunDurumDegistir(urun.id, "oneCikan", !urun.oneCikan))
-                        }
-                        title={urun.oneCikan ? "Öne çıkarılmış" : "Öne çıkar"}
-                        aria-label={urun.oneCikan ? "Öne çıkarmayı kaldır" : "Öne çıkar"}
-                        aria-pressed={urun.oneCikan}
-                        className="rounded-yumusak p-1.5 transition-colors hover:bg-kum-koyu disabled:opacity-50"
-                      >
-                        <Star
-                          className={cn(
-                            "size-4",
-                            urun.oneCikan ? "fill-kiremit text-kiremit" : "text-solgun",
-                          )}
-                        />
-                      </button>
-                    </div>
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Gorsel urun={urun} boyut="kucuk" />
+                    <div className="min-w-0">
                       <Link
                         href={`/admin/urunler/${urun.id}`}
-                        aria-label={`${urun.ad} düzenle`}
-                        className="rounded-yumusak p-2 text-murekkep-yumusak transition-colors hover:bg-kum-koyu hover:text-murekkep"
+                        className="block truncate font-medium text-murekkep hover:text-kiremit"
                       >
-                        <Pencil className="size-4" />
+                        {urun.ad}
                       </Link>
-                      <button
-                        type="button"
-                        disabled={islemde}
-                        aria-label={`${urun.ad} sil`}
-                        onClick={() => {
-                          const onay = window.confirm(
-                            `"${urun.ad}" kalıcı olarak silinecek. Devam edilsin mi?`,
-                          );
-                          if (onay) calistir(() => urunSil(urun.id));
-                        }}
-                        className="rounded-yumusak p-2 text-murekkep-yumusak transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-50"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
+                      <p className="rakam truncate text-xs text-solgun">
+                        {urun.stokKodu ? `${urun.stokKodu} · ` : ""}
+                        {tarihSaatBicimle(urun.guncellemeTarihi)}
+                      </p>
                     </div>
-                  </td>
-                </tr>
-              );
-            })}
+                  </div>
+                </td>
+
+                <td className="px-4 py-3 text-murekkep-yumusak">
+                  <p className="truncate">{urun.kategoriAdi ?? "—"}</p>
+                  <p className="truncate text-xs text-solgun">{urun.markaAdi ?? "—"}</p>
+                </td>
+
+                <td className="px-4 py-3">
+                  <Fiyat urun={urun} />
+                </td>
+
+                <td className="px-4 py-3">
+                  <StokRozeti durum={urun.stokDurumu} />
+                </td>
+
+                <td className="px-4 py-3">
+                  <Anahtarlar urun={urun} />
+                </td>
+
+                <td className="px-4 py-3">
+                  <div className="flex justify-end">
+                    <Islemler urun={urun} />
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </TabloSarmali>
       </div>
@@ -307,14 +387,16 @@ function YayinAnahtari({
       disabled={beklemede}
       onClick={() => onDegis(!acik)}
       className={cn(
-        "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50",
+        /* Telefonda parmakla vurulacak alan biraz daha büyük. */
+        "flex h-7 w-12 shrink-0 items-center rounded-full px-0.5 transition-colors md:h-6 md:w-11",
+        "disabled:opacity-50",
         acik ? "bg-onay" : "bg-cizgi-koyu",
       )}
     >
       <span
         className={cn(
-          "absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all",
-          acik ? "left-[1.375rem]" : "left-0.5",
+          "size-6 rounded-full bg-white shadow-sm transition-transform md:size-5",
+          acik && "translate-x-5",
         )}
       />
     </button>

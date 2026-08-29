@@ -173,7 +173,7 @@ export function GaleriYonetimi({ gorseller }: { gorseller: GaleriKaydi[] }) {
                           aria-label={`${sira + 1}. görseli öne al`}
                           disabled={sira === 0 || mesgul}
                           onClick={() => calistir(() => galeriGorseliTasi(gorsel.id, "yukari"))}
-                          className="rounded-yumusak p-1.5 text-murekkep-yumusak transition-colors hover:bg-kum-koyu disabled:opacity-40"
+                          className="rounded-yumusak p-2 text-murekkep-yumusak md:p-1.5 transition-colors hover:bg-kum-koyu disabled:opacity-40"
                         >
                           <ArrowLeft className="size-4" />
                         </button>
@@ -182,7 +182,7 @@ export function GaleriYonetimi({ gorseller }: { gorseller: GaleriKaydi[] }) {
                           aria-label={`${sira + 1}. görseli geri al`}
                           disabled={sira === gorseller.length - 1 || mesgul}
                           onClick={() => calistir(() => galeriGorseliTasi(gorsel.id, "asagi"))}
-                          className="rounded-yumusak p-1.5 text-murekkep-yumusak transition-colors hover:bg-kum-koyu disabled:opacity-40"
+                          className="rounded-yumusak p-2 text-murekkep-yumusak md:p-1.5 transition-colors hover:bg-kum-koyu disabled:opacity-40"
                         >
                           <ArrowRight className="size-4" />
                         </button>
@@ -196,7 +196,7 @@ export function GaleriYonetimi({ gorseller }: { gorseller: GaleriKaydi[] }) {
                             );
                             if (onay) calistir(() => galeriGorseliSil(gorsel.id));
                           }}
-                          className="rounded-yumusak p-1.5 text-murekkep-yumusak transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-40"
+                          className="rounded-yumusak p-2 text-murekkep-yumusak md:p-1.5 transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-40"
                         >
                           <Trash2 className="size-4" />
                         </button>

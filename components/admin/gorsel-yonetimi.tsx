@@ -217,7 +217,7 @@ function IslemDugmesi({
       disabled={pasif}
       onClick={onTikla}
       className={cn(
-        "rounded-yumusak p-1.5 text-murekkep-yumusak transition-colors disabled:opacity-40",
+        "rounded-yumusak p-2 text-murekkep-yumusak transition-colors disabled:opacity-40 md:p-1.5",
         tehlike
           ? "hover:bg-hata/10 hover:text-hata"
           : "hover:bg-kum-koyu hover:text-murekkep",

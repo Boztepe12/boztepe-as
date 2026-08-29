@@ -77,6 +77,15 @@ Kod tarafında bekleyen bir eksik yok; panelin ekranları tamamlandı.
 - **Sunucu eylemi hata fırlatırsa** (örneğin oturum düşmüşse `eylemIcinOturum` fırlatır)
   istemci tarafında yakalanmazsa ekran hata sınırına düşüyor. Panel bileşenlerinde her
   eylem çağrısı `try/catch` içinde ve kullanıcıya anlaşılır bir bildirim gösteriliyor.
+- **Panel listeleri iki düzen taşıyor**: telefon için kart (`md:hidden`), tablet ve üstü
+  için tablo (`hidden md:block`). Yeni bir liste eklerken ikisini birden yazmak gerekiyor;
+  yalnızca tablo yazılırsa telefonda yana kaydırma çıkar.
+- **`generateStaticParams` kategori/marka sayfalarında yok, bilerek.** Bu sayfalar
+  `searchParams` okuduğu için Next hiçbir koşulda statik HTML üretmiyor (derleme çıktısında
+  o adresler için `.html` dosyası oluşmuyor). Eklemek yalnızca derlemede boş bir sorgu demek.
+- **Zorla kapatmanın bedeli gerçek**: bu oturumda dev sunucusu iki kez `taskkill /F` ile
+  kapatıldı ve PGlite dizini ikisinde de bozuldu. `npm run db:onar` onarıyor ama veri
+  (örnek talepler) gidiyor. Mümkünse sunucuyu Ctrl+C ile durdurun.
 - **Fiyatlar Türkçe yazılıyor**: `12.345,50` girdisi sunucuda `12345.50`'ye çevriliyor
   (`paraAlani` şeması). Formda gösterirken ters çevirmek gerekiyor — `urun-formu.tsx`
   içindeki `paraGoster` bunu yapıyor. Veritabanı değerini doğrudan input'a basmayın,
@@ -183,7 +192,10 @@ Elle müdahale gerekirse: `npm run db:onar` (kontrol + gerekiyorsa onarım),
 ### Kapanış
 - [x] Üretim derlemesi (`npm run build`) hatasız — 42 sayfa üretiliyor, uyarı yok
 - [x] `npx eslint` ve `npx tsc --noEmit` temiz
-- [ ] Erişilebilirlik ve mobil kontrolü (gerçek cihazda gözden geçirilmedi)
+- [x] Mobil uyum: paneldeki bütün listeler telefonda kart, tablet/masaüstünde tablo;
+      dokunma hedefleri telefonda büyütüldü. Vitrin zaten mobil öncelikliydi.
+- [ ] Erişilebilirlik ve gerçek cihaz kontrolü (tarayıcıda gözle görülmedi — projede
+      Playwright/Puppeteer yok, doğrulama kod ve HTML çıktısı üzerinden yapıldı)
 - [ ] Deploy notları (`README.md`)
 - [ ] Neon + Cloudinary + Vercel kurulumu
 

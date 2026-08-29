@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { existsSync, renameSync, rmSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
@@ -61,6 +61,35 @@ function komut(satir) {
   execSync(satir, { stdio: "inherit" });
 }
 
+/**
+ * Dizini ayri bir surecte yokluyoruz.
+ *
+ * PGlite bozuk bir dizini acmaya calisirken WASM tarafinda `Aborted()` ile cokuyor
+ * ama actigi dosya tanitici lari bu surecte acik kaliyor. Yoklamayi burada yapinca
+ * dizini yeniden adlandirmak da imkansiz hale geliyor ve betik, aslinda serbest olan
+ * dizini "baska bir surec kullaniyor" sanip onarimdan vazgeciyordu. Cocuk surec
+ * bittiginde tanitici lar da kapandigi icin onarim sorunsuz ilerliyor.
+ */
+function dizinOkunabilirMi() {
+  const yoklama =
+    'import("@electric-sql/pglite").then(async ({ PGlite }) => {' +
+    ' const db = new PGlite("./.pglite");' +
+    ' const sonuc = await db.query("select count(*)::int as adet from urunler");' +
+    ' await db.close();' +
+    ' process.stdout.write(String(sonuc.rows[0].adet));' +
+    '}).catch(() => process.exit(1));';
+
+  try {
+    const cikti = execFileSync(process.execPath, ["--input-type=module", "-e", yoklama], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    return { saglam: true, adet: Number(cikti.trim()) || 0 };
+  } catch {
+    return { saglam: false, adet: 0 };
+  }
+}
+
 function kur(sebep, bozukDizinVar) {
   console.log(`\n[db] ${sebep}`);
 
@@ -111,13 +140,10 @@ async function calistir() {
     console.log("[db] Sahipsiz PGlite kilidi temizlendi.");
   }
 
-  try {
-    const { PGlite } = await import("@electric-sql/pglite");
-    const db = new PGlite("./.pglite");
-    const sonuc = await db.query("select count(*)::int as adet from urunler");
-    await db.close();
-    console.log(`[db] Yerel veritabani saglam (${sonuc.rows[0].adet} urun).`);
-  } catch {
+  const durum = dizinOkunabilirMi();
+  if (durum.saglam) {
+    console.log(`[db] Yerel veritabani saglam (${durum.adet} urun).`);
+  } else {
     kur("Yerel veritabani okunamiyor (dizin bozulmus).", true);
   }
 }

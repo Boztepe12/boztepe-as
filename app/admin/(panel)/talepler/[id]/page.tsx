@@ -147,44 +147,71 @@ export default async function TalepDetaySayfasi({
             </p>
           ) : (
             <>
-              <TabloSarmali>
-                <thead>
-                  <tr className="border-b border-cizgi text-left text-xs uppercase tracking-wider text-solgun">
-                    <th className="px-5 py-3 font-medium">Ürün</th>
-                    <th className="px-5 py-3 font-medium">Birim fiyat</th>
-                    <th className="px-5 py-3 font-medium">Adet</th>
-                    <th className="px-5 py-3 text-right font-medium">Tutar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {kalemler.map((kalem) => (
-                    <tr key={kalem.id} className="border-b border-cizgi last:border-0">
-                      <td className="px-5 py-3.5">
-                        {kalem.urunSlug ? (
-                          <Link
-                            href={`/urun/${kalem.urunSlug}`}
-                            target="_blank"
-                            className="font-medium text-murekkep hover:text-kiremit"
-                          >
-                            {kalem.urunAdi}
-                          </Link>
-                        ) : (
-                          <span className="font-medium text-murekkep">{kalem.urunAdi}</span>
-                        )}
-                      </td>
-                      <td className="rakam px-5 py-3.5 text-murekkep-yumusak">
-                        {kalem.birimFiyat ? fiyatBicimle(kalem.birimFiyat) : "Fiyat sorulacak"}
-                      </td>
-                      <td className="rakam px-5 py-3.5 text-murekkep-yumusak">{kalem.adet}</td>
-                      <td className="rakam px-5 py-3.5 text-right font-medium text-murekkep">
-                        {kalem.birimFiyat
-                          ? fiyatBicimle(Number(kalem.birimFiyat) * kalem.adet)
-                          : "—"}
-                      </td>
+              {/* Telefon: kalemler alt alta; tablo dar ekranda okunmuyor. */}
+              <ul className="divide-y divide-cizgi md:hidden">
+                {kalemler.map((kalem) => (
+                  <li key={kalem.id} className="px-5 py-3.5">
+                    {kalem.urunSlug ? (
+                      <Link
+                        href={`/urun/${kalem.urunSlug}`}
+                        target="_blank"
+                        className="font-medium text-murekkep hover:text-kiremit"
+                      >
+                        {kalem.urunAdi}
+                      </Link>
+                    ) : (
+                      <span className="font-medium text-murekkep">{kalem.urunAdi}</span>
+                    )}
+                    <p className="rakam mt-1 text-sm text-murekkep-yumusak">
+                      {kalem.birimFiyat ? fiyatBicimle(kalem.birimFiyat) : "Fiyat sorulacak"}
+                      {` × ${kalem.adet}`}
+                      {kalem.birimFiyat &&
+                        ` = ${fiyatBicimle(Number(kalem.birimFiyat) * kalem.adet)}`}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="hidden md:block">
+                <TabloSarmali>
+                  <thead>
+                    <tr className="border-b border-cizgi text-left text-xs uppercase tracking-wider text-solgun">
+                      <th className="px-5 py-3 font-medium">Ürün</th>
+                      <th className="px-5 py-3 font-medium">Birim fiyat</th>
+                      <th className="px-5 py-3 font-medium">Adet</th>
+                      <th className="px-5 py-3 text-right font-medium">Tutar</th>
                     </tr>
-                  ))}
-                </tbody>
-              </TabloSarmali>
+                  </thead>
+                  <tbody>
+                    {kalemler.map((kalem) => (
+                      <tr key={kalem.id} className="border-b border-cizgi last:border-0">
+                        <td className="px-5 py-3.5">
+                          {kalem.urunSlug ? (
+                            <Link
+                              href={`/urun/${kalem.urunSlug}`}
+                              target="_blank"
+                              className="font-medium text-murekkep hover:text-kiremit"
+                            >
+                              {kalem.urunAdi}
+                            </Link>
+                          ) : (
+                            <span className="font-medium text-murekkep">{kalem.urunAdi}</span>
+                          )}
+                        </td>
+                        <td className="rakam px-5 py-3.5 text-murekkep-yumusak">
+                          {kalem.birimFiyat ? fiyatBicimle(kalem.birimFiyat) : "Fiyat sorulacak"}
+                        </td>
+                        <td className="rakam px-5 py-3.5 text-murekkep-yumusak">{kalem.adet}</td>
+                        <td className="rakam px-5 py-3.5 text-right font-medium text-murekkep">
+                          {kalem.birimFiyat
+                            ? fiyatBicimle(Number(kalem.birimFiyat) * kalem.adet)
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </TabloSarmali>
+              </div>
 
               <div className="flex items-center justify-between border-t border-cizgi px-5 py-4">
                 <span className="text-sm text-murekkep-yumusak">Toplam</span>

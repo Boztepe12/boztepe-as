@@ -155,46 +155,75 @@ export default async function PanelOzetSayfasi() {
             Henüz teklif talebi gelmedi.
           </p>
         ) : (
-          <TabloSarmali>
-            <thead>
-              <tr className="border-b border-cizgi text-left text-xs uppercase tracking-wider text-solgun">
-                <th className="px-5 py-3 font-medium">Kod</th>
-                <th className="px-5 py-3 font-medium">Müşteri</th>
-                <th className="px-5 py-3 font-medium">Ürün</th>
-                <th className="px-5 py-3 font-medium">Tutar</th>
-                <th className="px-5 py-3 font-medium">Durum</th>
-                <th className="px-5 py-3 font-medium">Tarih</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Telefon: kart listesi — tablo dar ekranda yana kaydırma gerektiriyor. */}
+            <ul className="divide-y divide-cizgi md:hidden">
               {ozet.sonTalepler.map((talep) => (
-                <tr key={talep.id} className="border-b border-cizgi last:border-0 hover:bg-kum">
-                  <td className="px-5 py-3.5">
+                <li key={talep.id} className="px-4 py-3.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/admin/talepler/${talep.id}`}
                       className="rakam font-medium text-kiremit hover:underline"
                     >
                       {talep.kod}
                     </Link>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <p className="font-medium text-murekkep">{talep.adSoyad}</p>
-                    <p className="rakam text-xs text-solgun">{talep.telefon}</p>
-                  </td>
-                  <td className="rakam px-5 py-3.5 text-murekkep-yumusak">{talep.kalemAdedi}</td>
-                  <td className="rakam px-5 py-3.5 text-murekkep">
-                    {talep.toplamTutar ? fiyatBicimle(talep.toplamTutar) : "—"}
-                  </td>
-                  <td className="px-5 py-3.5">
                     <TalepDurumRozeti durum={talep.durum as TalepDurumu} />
-                  </td>
-                  <td className="rakam px-5 py-3.5 text-xs text-solgun">
-                    {tarihSaatBicimle(talep.olusturmaTarihi)}
-                  </td>
-                </tr>
+                    <span className="rakam ml-auto text-xs text-solgun">
+                      {tarihSaatBicimle(talep.olusturmaTarihi)}
+                    </span>
+                  </div>
+                  <p className="mt-1 font-medium text-murekkep">{talep.adSoyad}</p>
+                  <p className="rakam text-sm text-murekkep-yumusak">
+                    {talep.telefon} · {talep.kalemAdedi} ürün
+                    {talep.toplamTutar && ` · ${fiyatBicimle(talep.toplamTutar)}`}
+                  </p>
+                </li>
               ))}
-            </tbody>
-          </TabloSarmali>
+            </ul>
+
+            <div className="hidden md:block">
+              <TabloSarmali>
+                <thead>
+                  <tr className="border-b border-cizgi text-left text-xs uppercase tracking-wider text-solgun">
+                    <th className="px-5 py-3 font-medium">Kod</th>
+                    <th className="px-5 py-3 font-medium">Müşteri</th>
+                    <th className="px-5 py-3 font-medium">Ürün</th>
+                    <th className="px-5 py-3 font-medium">Tutar</th>
+                    <th className="px-5 py-3 font-medium">Durum</th>
+                    <th className="px-5 py-3 font-medium">Tarih</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ozet.sonTalepler.map((talep) => (
+                    <tr key={talep.id} className="border-b border-cizgi last:border-0 hover:bg-kum">
+                      <td className="px-5 py-3.5">
+                        <Link
+                          href={`/admin/talepler/${talep.id}`}
+                          className="rakam font-medium text-kiremit hover:underline"
+                        >
+                          {talep.kod}
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <p className="font-medium text-murekkep">{talep.adSoyad}</p>
+                        <p className="rakam text-xs text-solgun">{talep.telefon}</p>
+                      </td>
+                      <td className="rakam px-5 py-3.5 text-murekkep-yumusak">{talep.kalemAdedi}</td>
+                      <td className="rakam px-5 py-3.5 text-murekkep">
+                        {talep.toplamTutar ? fiyatBicimle(talep.toplamTutar) : "—"}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <TalepDurumRozeti durum={talep.durum as TalepDurumu} />
+                      </td>
+                      <td className="rakam px-5 py-3.5 text-xs text-solgun">
+                        {tarihSaatBicimle(talep.olusturmaTarihi)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </TabloSarmali>
+            </div>
+          </>
         )}
       </Panel>
     </>

@@ -7,7 +7,7 @@ import { markaGetir } from "@/lib/sorgular/icerik";
 
 export const revalidate = 3600;
 
-/* Neden statik üretim yok: `app/(vitrin)/kategori/[slug]/page.tsx` içindeki nota bakın. */
+/* Neden `generateStaticParams` yok: `app/(vitrin)/kategori/[slug]/page.tsx` içindeki nota bakın. */
 
 export async function generateMetadata({
   params,

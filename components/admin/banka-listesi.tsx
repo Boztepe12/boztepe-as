@@ -262,7 +262,7 @@ export function BankaListesi({
                     aria-label={`${hesap.bankaAdi} hesabını sil`}
                     disabled={islemde}
                     onClick={() => sil(hesap)}
-                    className="rounded-yumusak p-2 text-murekkep-yumusak transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-50"
+                    className="rounded-yumusak p-2.5 text-murekkep-yumusak md:p-2 transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-50"
                   >
                     <Trash2 className="size-4" />
                   </button>

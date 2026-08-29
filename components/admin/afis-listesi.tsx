@@ -96,14 +96,15 @@ export function AfisListesi({ afisler }: { afisler: ListeAfisi[] }) {
                 disabled={islemde}
                 onClick={() => calistir(() => afisDurumDegistir(afis.id, !afis.aktif))}
                 className={cn(
-                  "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50",
+                  "flex h-7 w-12 shrink-0 items-center rounded-full px-0.5 transition-colors md:h-6 md:w-11",
+                  "disabled:opacity-50",
                   afis.aktif ? "bg-onay" : "bg-cizgi-koyu",
                 )}
               >
                 <span
                   className={cn(
-                    "absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all",
-                    afis.aktif ? "left-[1.375rem]" : "left-0.5",
+                    "size-6 rounded-full bg-white shadow-sm transition-transform md:size-5",
+                    afis.aktif && "translate-x-5",
                   )}
                 />
               </button>
@@ -111,7 +112,7 @@ export function AfisListesi({ afisler }: { afisler: ListeAfisi[] }) {
               <Link
                 href={`/admin/afisler/${afis.id}`}
                 aria-label={`${afis.baslik} düzenle`}
-                className="rounded-yumusak p-2 text-murekkep-yumusak transition-colors hover:bg-kum-koyu hover:text-murekkep"
+                className="rounded-yumusak p-2.5 text-murekkep-yumusak md:p-2 transition-colors hover:bg-kum-koyu hover:text-murekkep"
               >
                 <Pencil className="size-4" />
               </Link>
@@ -124,7 +125,7 @@ export function AfisListesi({ afisler }: { afisler: ListeAfisi[] }) {
                   const onay = window.confirm(`"${afis.baslik}" silinecek. Devam edilsin mi?`);
                   if (onay) calistir(() => afisSil(afis.id));
                 }}
-                className="rounded-yumusak p-2 text-murekkep-yumusak transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-50"
+                className="rounded-yumusak p-2.5 text-murekkep-yumusak md:p-2 transition-colors hover:bg-hata/10 hover:text-hata disabled:opacity-50"
               >
                 <Trash2 className="size-4" />
               </button>

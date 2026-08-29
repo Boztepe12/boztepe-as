@@ -9,10 +9,12 @@ import { kategoriGetir } from "@/lib/sorgular/kategoriler";
 export const revalidate = 3600;
 
 /*
- * Bu sayfa `searchParams` okuyor (marka, fiyat, sıralama, sayfa filtreleri), bu yüzden
- * Next tarafından her zaman istek anında üretiliyor. `generateStaticParams` yazmak
- * derleme sırasında boşuna bir veritabanı sorgusu anlamına gelirdi; arama motorları
- * için kategori adresleri zaten `app/sitemap.ts` içinde listeleniyor.
+ * Burada bilerek `generateStaticParams` yok. Sayfa `searchParams` okuyor (marka, fiyat,
+ * sıralama, sayfa filtreleri); bu yüzden Next onu her koşulda istek anında üretiyor ve
+ * derlemede tek bir statik HTML dosyası çıkmıyor — denendi, çıktı klasöründe kategori
+ * sayfası için hiçbir `.html` üretilmiyor. Slug listesini derlemede çekmek yalnızca
+ * boşuna bir veritabanı sorgusu olurdu. Arama motorları için adresler `app/sitemap.ts`
+ * içinde listeleniyor; `revalidate` de sunucu tarafı önbelleğini sağlıyor.
  */
 
 export async function generateMetadata({
