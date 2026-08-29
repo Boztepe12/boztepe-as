@@ -7,9 +7,16 @@ import { aktifMarkalar, markaGetir } from "@/lib/sorgular/icerik";
 
 export const revalidate = 3600;
 
+/* Gerekçe için `app/(vitrin)/kategori/[slug]/page.tsx` içindeki aynı fonksiyona bakın. */
 export async function generateStaticParams() {
-  const markalar = await aktifMarkalar();
-  return markalar.map((m) => ({ slug: m.slug }));
+  if (process.env.NODE_ENV !== "production") return [];
+
+  try {
+    const markalar = await aktifMarkalar();
+    return markalar.map((m) => ({ slug: m.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({

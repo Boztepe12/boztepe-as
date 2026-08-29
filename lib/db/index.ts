@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 
-import { kalmisKilidiTemizle } from "./kilit";
+import { kalmisKilidiTemizle, sahipligiBirak, sahipligiYaz } from "./kilit";
 import * as schema from "./schema";
 
 /**
@@ -55,7 +55,10 @@ function kapanistaKapat(pglite: PGlite) {
     void pglite
       .close()
       .catch(() => {})
-      .finally(() => process.exit(0));
+      .finally(() => {
+        sahipligiBirak();
+        process.exit(0);
+      });
   };
 
   process.once("SIGINT", kapat);
@@ -72,6 +75,9 @@ function baglantiKur(): VeritabaniBaglantisi {
   const pglite = global_.__boztepePglite ?? new PGlite("./.pglite");
   if (process.env.NODE_ENV !== "production") {
     global_.__boztepePglite = pglite;
+    /* Dizini bu sürecin açtığını yazıyoruz; başka bir süreç kilidi sahipsiz sanıp
+       silmesin diye. Ayrıntı için `lib/db/kilit.ts`. */
+    sahipligiYaz();
     kapanistaKapat(pglite);
   }
 

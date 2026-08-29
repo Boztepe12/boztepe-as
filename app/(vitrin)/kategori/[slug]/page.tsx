@@ -8,9 +8,22 @@ import { kategoriGetir, tumKategoriSluglari } from "@/lib/sorgular/kategoriler";
 
 export const revalidate = 3600;
 
+/*
+ * Bu fonksiyon Next tarafından ayrı bir işlemde çalıştırılıyor. Geliştirmede
+ * veritabanı PGlite ve tek yazıcı olduğu için ikinci bir bağlantı açılamaz;
+ * o yüzden yerelde hiç sorgu yapmıyoruz, sayfalar istek anında üretiliyor.
+ * Üretimde (Neon) sorgu çalışır; veritabanına ulaşılamazsa da derleme
+ * durmasın diye boş liste dönüyoruz.
+ */
 export async function generateStaticParams() {
-  const kategoriler = await tumKategoriSluglari();
-  return kategoriler.map((k) => ({ slug: k.slug }));
+  if (process.env.NODE_ENV !== "production") return [];
+
+  try {
+    const kategoriler = await tumKategoriSluglari();
+    return kategoriler.map((k) => ({ slug: k.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
