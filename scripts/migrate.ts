@@ -1,4 +1,8 @@
-import "dotenv/config";
+import { config } from "dotenv";
+
+/* Next.js `.env.local` okur ama `dotenv/config` yalnizca `.env` bakar; ikisini de yukluyoruz. */
+config({ path: ".env.local", quiet: true });
+config({ quiet: true });
 
 import { PGlite } from "@electric-sql/pglite";
 import { neon } from "@neondatabase/serverless";

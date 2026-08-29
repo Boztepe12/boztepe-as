@@ -1,7 +1,70 @@
 # İlerleme Takibi
 
 Bu dosya, oturum bağlamı sıfırlansa bile işin kaldığı yerden sürdürülebilmesi için tutuluyor.
-Bir adım bittiğinde kutusu işaretlenir ve kısa bir not düşülür.
+Yeni bir oturum bu dosyayı ve `CLAUDE.md`'yi okuyarak devam edebilir.
+
+---
+
+## ⏸️ NEREDE KALDIM (son güncelleme: 29 Ağustos 2026)
+
+**Vitrin (müşteri tarafı) bitti ve çalışıyor. Admin panelinin temeli atıldı, ekranları yarım.**
+
+### Şu an çalışan hâli
+`npm run dev` → http://localhost:3000 açılıyor, tüm vitrin sayfaları gerçek veriyle geliyor.
+Yönetici girişi çalışıyor: `/admin/giris` → `admin@boztepeas.com` / `BoztepeAdmin2026`
+(yalnızca yerel geliştirme şifresi). Giriş yapılmadan `/admin` adresine gidilirse giriş
+ekranına yönlendiriliyor; bu test edildi.
+
+### Admin panelinde BİTEN
+- `lib/auth/giris.ts` — giriş/çıkış sunucu eylemleri, deneme sınırlama, zamanlama saldırısına
+  karşı sabit süreli şifre karşılaştırma
+- `lib/auth/koruma.ts` — `oturumZorunlu`, `adminZorunlu`, `eylemIcinOturum`
+- `app/admin/giris/` — giriş ekranı ve formu
+- `app/admin/(panel)/layout.tsx` — oturum koruması + panel kabuğu
+- `app/admin/(panel)/page.tsx` — özet ekranı (sayı kutuları, dikkat gerektirenler, son talepler)
+- `components/admin/panel-kabuk.tsx` — kenar menü, mobil çekmece, çıkış
+- `components/admin/panel-parcalari.tsx` — `SayfaBasligi`, `OzetKutusu`, `Panel`,
+  `TalepDurumRozeti`, `TabloSarmali`
+- `lib/sorgular/admin.ts` — panel özeti, ürün/talep listeleme, form seçenekleri, tüm listeler
+- `lib/storage/index.ts` — görsel yükleme soyutlaması (Cloudinary varsa Cloudinary,
+  yoksa `public/yuklenenler` altına yerel disk)
+- `lib/eylemler/admin/urun.ts` — ürün kaydet/sil, durum değiştir, görsel yükle/sil/sırala,
+  toplu işlem. **Yazıldı ve derleniyor ama henüz hiçbir ekran tarafından kullanılmıyor,
+  yani çalışırken denenmedi.**
+
+### 👉 SIRADAKİ SOMUT ADIM
+`app/admin/(panel)/urunler/` altındaki ekranları yaz. Sunucu eylemleri ve sorgular hazır,
+tek eksik arayüz:
+
+1. `app/admin/(panel)/urunler/page.tsx` — ürün listesi
+   (`yoneticiUrunleri()` kullanılacak; arama, kategori/marka/durum filtresi, sayfalama,
+   satır içi yayınla-gizle anahtarı, toplu seçim)
+2. `app/admin/(panel)/urunler/yeni/page.tsx` ve `.../[id]/page.tsx` — ürün formu
+   (`formSecenekleri()` ile kategori/marka listesi, `urunKaydet()` ile kayıt;
+   düzenleme ekranında görsel yükleme ve özellik satırları da olacak)
+3. Ortak form bileşeni: `components/admin/urun-formu.tsx` (istemci bileşeni)
+
+Sonra sırasıyla: talepler → kategoriler → markalar → afişler → galeri → banka → ayarlar →
+hesap (şifre değiştirme). Hepsi için sorgular `lib/sorgular/admin.ts` içinde hazır;
+yalnızca kendi sunucu eylemleri (`lib/eylemler/admin/*.ts`) ve ekranları yazılacak.
+
+### Bilinen tuzaklar (tekrar düşmemek için)
+- **PGlite tek yazıcıdır.** Dev sunucusu çalışırken `db:seed` / `db:migrate` çalışmaz.
+- **Dev sunucusunu zorla kapatma.** `taskkill /F` geride `postmaster.pid` bırakıyor ve
+  veri dizinini bozabiliyor. Kilit kalırsa `npm run db:unlock`, dizin bozulduysa
+  `npm run db:reset`.
+- **lucide-react 1.x marka ikonlarını kaldırdı** (Instagram, Facebook, WhatsApp yok).
+  Bunlar `components/site/marka-simgeleri.tsx` içinde satır içi SVG olarak duruyor.
+- **PGlite paketlenmemeli**; `next.config.ts` içinde `serverExternalPackages` ile dışarıda.
+- **Tailwind v4**: renk/yarıçap/gölge token'ları `@theme` içinde tanımlı ve otomatik
+  utility üretiyor (`bg-kiremit`, `rounded-kart`, `font-baslik`…). v3'ün `bg-[--degisken]`
+  sözdizimini kullanma.
+- **`dotenv/config` yalnızca `.env` okur**, bizim değerler `.env.local`'da. Betikler
+  ikisini de yüklüyor.
+- **Drizzle birleşim tipi**: iki sürücünün tipini birleştirmek `.returning()` gibi
+  metotlarda TypeScript'i kilitliyor; `lib/db/index.ts` tek tip üzerinden ilerliyor.
+
+---
 
 ## Durum özeti
 
@@ -20,18 +83,18 @@ npm run db:migrate    # Migrasyonları uygula (PGlite veya Neon)
 npm run db:seed       # Örnek veriyi yükle (mevcut veriyi siler)
 npm run db:reset      # Veritabanını sıfırla + migrate + seed
 npm run db:studio     # Drizzle Studio
-npm run db:unlock     # Kalmis PGlite kilidini temizle
+npm run db:unlock     # Kalmış PGlite kilidini temizle
 ```
 
-### PGlite hakkinda bilinmesi gerekenler
+### PGlite hakkında bilinmesi gerekenler
 
-PGlite tek yazicilidir: dev sunucusu calisirken `db:seed`, `db:migrate` veya baska bir
-betik ayni `.pglite` dizinini acamaz. Once dev sunucusunu durdurun.
+PGlite tek yazıcılıdır: dev sunucusu çalışırken `db:seed`, `db:migrate` veya başka bir
+betik aynı `.pglite` dizinini açamaz. Önce dev sunucusunu durdurun.
 
-Dev sunucusu duzgun kapanmazsa (`taskkill`, ani cokme) geride bir `postmaster.pid`
-kilidi kalir ve sonraki acilis `Aborted()` hatasiyla duser. `npm run db:unlock` bunu
-temizler; veri dizini de bozulduysa `npm run db:reset` her seyi sifirdan kurar.
-Uretimde Neon kullanildigi icin bu kisit yalnizca gelistirmeyi ilgilendirir.
+Dev sunucusu düzgün kapanmazsa (`taskkill`, ani çökme) geride bir `postmaster.pid`
+kilidi kalır ve sonraki açılış `Aborted()` hatasıyla düşer. `npm run db:unlock` bunu
+temizler; veri dizini de bozulduysa `npm run db:reset` her şeyi sıfırdan kurar.
+Üretimde Neon kullanıldığı için bu kısıt yalnızca geliştirmeyi ilgilendirir.
 
 ## Adımlar
 
@@ -45,23 +108,24 @@ Uretimde Neon kullanildigi icin bu kisit yalnizca gelistirmeyi ilgilendirir.
 - [x] Oturum katmanı (`lib/auth/`) — bcrypt + jose JWT
 
 ### Veri erişimi
-- [ ] Sorgu katmanı (`lib/sorgular/`) — ürün, kategori, marka, ayar okuma
-- [ ] Görsel depolama soyutlaması (`lib/storage/`) — yerel disk / Cloudinary
+- [x] Sorgu katmanı (`lib/sorgular/`) — ürün, kategori, marka, ayar, admin
+- [x] Görsel depolama soyutlaması (`lib/storage/`) — yerel disk / Cloudinary
 
-### Vitrin
-- [ ] Kök yerleşim, fontlar, başlık ve altbilgi
-- [ ] Ana sayfa
-- [ ] Kategori ve ürün listeleme + filtreleme
-- [ ] Ürün detay sayfası
-- [ ] Arama
-- [ ] Teklif sepeti + talep formu
-- [ ] Hakkımızda, galeri, iletişim, kampanyalar
-- [ ] SEO: sitemap, robots, JSON-LD
+### Vitrin — tamamlandı
+- [x] Kök yerleşim, fontlar, başlık ve altbilgi
+- [x] Ana sayfa (afiş karuseli, kategoriler, indirimliler, öne çıkanlar, markalar)
+- [x] Ürün listeleme + filtreleme (marka, fiyat, indirim, stok) + sıralama + sayfalama
+- [x] Kategori ve marka sayfaları
+- [x] Ürün detay sayfası (galeri, teknik özellikler, benzer ürünler, JSON-LD)
+- [x] Arama — Türkçe karakter duyarsız, doğrulandı
+- [x] Teklif sepeti + talep formu (fiyat sunucuda doğrulanıyor)
+- [x] Kampanyalar, hakkımızda, galeri, iletişim, markalar, 404
+- [x] SEO: sitemap (53 girdi), robots
 
-### Admin paneli
-- [ ] Giriş ekranı ve oturum koruması
-- [ ] Panel yerleşimi ve özet ekranı
-- [ ] Ürün yönetimi (liste, ekle, düzenle, görsel, özellik)
+### Admin paneli — devam ediyor
+- [x] Giriş ekranı ve oturum koruması
+- [x] Panel yerleşimi ve özet ekranı
+- [ ] **Ürün yönetimi — SIRADAKİ İŞ** (sunucu eylemleri hazır, ekranlar yazılacak)
 - [ ] Kategori ve marka yönetimi
 - [ ] Afiş / kampanya yönetimi
 - [ ] Talep yönetimi (durum takibi)
@@ -70,7 +134,7 @@ Uretimde Neon kullanildigi icin bu kisit yalnizca gelistirmeyi ilgilendirir.
 - [ ] Şifre değiştirme
 
 ### Kapanış
-- [ ] Üretim derlemesi hatasız
+- [ ] Üretim derlemesi (`npm run build`) hatasız — henüz hiç çalıştırılmadı
 - [ ] Erişilebilirlik ve mobil kontrolü
 - [ ] Deploy notları (`README.md`)
 
