@@ -73,6 +73,15 @@ doldurulmuş. Harici hiçbir hesap gerekmeden `npm run dev` ile çalışılabili
 
 **Yerel yönetici girişi:** `admin@boztepeas.com` / `BoztepeAdmin2026` (yalnızca geliştirme)
 
+## Sohbet geçmişi
+
+Bu proje üzerindeki Claude Code konuşmaları `sohbet-gecmisi/` klasörüne kaydediliyor
+(okunabilir `.md` + ham `.jsonl`). Klasör `.gitignore` içinde, yani yerelde kalır.
+Ayrıntı için `sohbet-gecmisi/BENIOKU.md`.
+
+- Kaydı tazele: `npm run sohbet:kaydet`
+- Konuşmayı kaldığı yerden sürdür: proje kökünde `claude --continue`
+
 ## Komutlar
 
 ```bash

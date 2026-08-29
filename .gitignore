@@ -49,3 +49,6 @@ next-env.d.ts
 
 # gelistirme sunucusu ciktisi
 dev.log
+
+# sohbet kayitlari - yerelde kalir, git gecmisini sismesin
+sohbet-gecmisi/
