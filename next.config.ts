@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
    */
   serverExternalPackages: ["@electric-sql/pglite"],
 
+  /*
+   * Derleme sırasında Next sayfaları birden çok işçi sürecinde üretiyor. Yerelde
+   * veritabanı PGlite ve tek yazıcı olduğu için işçilerin çoğu dizini açamıyor,
+   * logda "Aborted()" satırları birikiyor ve hangi sayfanın önceden üretilebileceği
+   * şansa kalıyor. `DATABASE_URL` yokken tek işçiyle derliyoruz; üretimde (Neon)
+   * böyle bir kısıt olmadığından paralel derleme sürüyor.
+   */
+  ...(process.env.DATABASE_URL?.trim() ? {} : { experimental: { cpus: 1 } }),
+
   images: {
     remotePatterns: [
       /* Gerçek fotoğraflar gelene kadar kullanılan yer tutucu servisi. */
