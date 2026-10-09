@@ -154,10 +154,31 @@ export const urunler = pgTable(
      */
     aramaMetni: text("arama_metni"),
 
+    /*
+     * Stok Yönetimi bağlantısı (lib/stok/). Stok sisteminden gelen ürünlerde
+     * stokBarkod dolu ve tekildir; eşitleme ürünü bununla bulur. Stok sistemi
+     * yalnızca kendi alanlarını yazar: stok miktarı, liste fiyatı ve — ürün bazında
+     * açık oldukça — fiyat ile stok durumu. Ad, açıklama, fotoğraf, kategori, yayın
+     * durumu gibi vitrin alanları sitenin yöneticisine aittir, eşitleme onlara
+     * dokunmaz.
+     */
+    stokBarkod: varchar("stok_barkod", { length: 64 }),
+    stokUrunId: varchar("stok_urun_id", { length: 40 }),
+    stokMiktari: numeric("stok_miktari", { precision: 12, scale: 3 }),
+    stokListeFiyati: numeric("stok_liste_fiyati", { precision: 12, scale: 2 }),
+    /** Fiyat stok sistemindeki liste fiyatını izlesin (kapalıysa elle girilen fiyat kalır). */
+    fiyatStoktan: boolean("fiyat_stoktan").default(true).notNull(),
+    /** Stok durumu stok miktarından gelsin: 0'dan büyükse "stokta", değilse "tükendi". */
+    stokDurumuStoktan: boolean("stok_durumu_stoktan").default(true).notNull(),
+    /** Stok sisteminde silindi ya da web sitesinden kaldırıldı; vitrinde gösterilmez. */
+    stokKaldirildi: boolean("stok_kaldirildi").default(false).notNull(),
+    stokEsitlemeTarihi: timestamp("stok_esitleme_tarihi", { withTimezone: true }),
+
     ...zamanDamgalari,
   },
   (t) => [
     uniqueIndex("urunler_slug_idx").on(t.slug),
+    uniqueIndex("urunler_stok_barkod_idx").on(t.stokBarkod),
     index("urunler_kategori_idx").on(t.kategoriId),
     index("urunler_marka_idx").on(t.markaId),
     index("urunler_aktif_idx").on(t.aktif),
@@ -349,6 +370,23 @@ export const talepKalemIliskileri = relations(talepKalemleri, ({ one }) => ({
 }));
 
 /* ------------------------------------------------------------------ */
+/* Stok Yönetimi bağlantısının durumu - tek satır (id = 1)             */
+/* ------------------------------------------------------------------ */
+
+export const stokEntegrasyonu = pgTable("stok_entegrasyonu", {
+  id: integer("id").primaryKey(),
+  /** Bir sonraki artımlı eşitlemenin başlangıcı: önceki eşitlemenin sunucu saati. */
+  sonImlec: text("son_imlec"),
+  sonEsitleme: timestamp("son_esitleme", { withTimezone: true }),
+  sonSonuc: jsonb("son_sonuc"),
+  sonHata: text("son_hata"),
+  sonHataTarihi: timestamp("son_hata_tarihi", { withTimezone: true }),
+  /** Stoktan yeni gelen ürünler hemen yayına girsin mi? Kapalıyken gizli gelir, yönetici seçer. */
+  yeniUrunleriYayinla: boolean("yeni_urunleri_yayinla").default(false).notNull(),
+  guncellemeTarihi: timestamp("guncelleme_tarihi", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/* ------------------------------------------------------------------ */
 /* Tip kisayollari                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -367,3 +405,4 @@ export type Talep = typeof talepler.$inferSelect;
 export type TalepKalemi = typeof talepKalemleri.$inferSelect;
 export type GaleriGorseli = typeof galeriGorselleri.$inferSelect;
 export type BankaHesabi = typeof bankaHesaplari.$inferSelect;
+export type StokEntegrasyonu = typeof stokEntegrasyonu.$inferSelect;

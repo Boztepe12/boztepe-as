@@ -4,11 +4,12 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { GorselYonetimi } from "@/components/admin/gorsel-yonetimi";
-import { SayfaBasligi } from "@/components/admin/panel-parcalari";
+import { Panel, SayfaBasligi } from "@/components/admin/panel-parcalari";
+import { UrunStokAyari } from "@/components/admin/stok-entegrasyonu";
 import { UrunFormu, type FormUrunu } from "@/components/admin/urun-formu";
 import { formSecenekleri, yoneticiUrunGetir } from "@/lib/sorgular/admin";
 import { cloudinaryHazir } from "@/lib/storage";
-import { kisalt } from "@/lib/utils";
+import { fiyatBicimle, kisalt, tarihSaatBicimle } from "@/lib/utils";
 
 export async function generateMetadata({
   params,
@@ -46,6 +47,21 @@ export default async function UrunDuzenleSayfasi({
         baslik={kayit.urun.ad}
         aciklama={kayit.urun.aktif ? "Bu ürün sitede yayında." : "Bu ürün yayında değil."}
       />
+
+      {kayit.urun.stokBarkod && (
+        <Panel baslik="Stok sisteminden" className="mb-5"
+          aciklama={kayit.urun.stokKaldirildi ? "Bu ürün stok sisteminde kaldırıldı; sitede gösterilmiyor." : "Barkod, stok ve liste fiyatı Boztepe'nin stok sisteminden gelir."}>
+          <div className="grid gap-4 p-5 text-sm sm:grid-cols-[1fr_1.4fr]">
+            <dl className="space-y-1.5">
+              <div className="flex justify-between gap-3"><dt className="text-murekkep-yumusak">Barkod</dt><dd className="font-mono">{kayit.urun.stokBarkod}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-murekkep-yumusak">Stok</dt><dd className="rakam">{Number(kayit.urun.stokMiktari ?? 0).toLocaleString("tr-TR")}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-murekkep-yumusak">Liste fiyatı</dt><dd className="rakam">{kayit.urun.stokListeFiyati ? fiyatBicimle(kayit.urun.stokListeFiyati, true) : "girilmemiş"}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-murekkep-yumusak">Son eşitleme</dt><dd>{tarihSaatBicimle(kayit.urun.stokEsitlemeTarihi)}</dd></div>
+            </dl>
+            <UrunStokAyari id={urunId} fiyatStoktan={kayit.urun.fiyatStoktan} stokDurumuStoktan={kayit.urun.stokDurumuStoktan} />
+          </div>
+        </Panel>
+      )}
 
       <div className="mb-5">
         <GorselYonetimi

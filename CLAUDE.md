@@ -60,6 +60,10 @@ yapılabilmeli.
 - Bu proje **tamamen bağımsızdır**. Kullanıcının diğer repolarına (`smart-menu`,
   `company-website`, `EnginKuyumculuk`, `Adisyon`, `OverfitSoft-*`) ve onların altyapısına
   kesinlikle dokunulmayacak. Sadece kod konvansiyonu öğrenmek için okunabilir.
+- **Tek istisna Stok Yönetimi bağlantısı** (2026-10-09, kullanıcının isteği): ürün, fiyat ve stok
+  Boztepe'nin stok sisteminden (Stok Yönetimi, `Boztepe12/stok-yonetimi-*`) **yalnızca onun web
+  sitesi API'si ve webhook'ları üzerinden** gelir. O sistemin veritabanına ya da koduna buradan
+  dokunulmaz.
 - Türkçe içerik ve Türkçe arayüz esas. Arama Türkçe karakter duyarsız çalışmalı.
 - Git: `main` dalı, remote `pers:Boztepe12/boztepe-as.git` (SSH alias `pers` = kişisel hesap).
 
@@ -69,6 +73,28 @@ Vitrin ve yönetim paneli tamamlandı; `npm run build` hatasız çalışıyor. N
 ekran ekran ne yapıldığı ve bilinen tuzaklar `ILERLEME.md` içinde tutuluyor — yeni bir
 oturum önce onu okumalı.
 
+## Stok Yönetimi bağlantısı
+
+`lib/stok/` — `istemci.ts` (API: `/api/v1/products`, `/products/{barkod}` → `{data}`, `/ping`),
+`esitle.ts` (eşitleme kuralları), `imza.ts` (webhook imzası). Admin ekranı `/admin/stok`
+("Stok Bağlantısı"), ürün düzenleme sayfasında "Stok sisteminden" kutusu.
+
+- Ürün `urunler.stok_barkod` ile eşlenir; yoksa stok kodu bu barkod olan elle açılmış ürüne
+  bağlanır; o da yoksa yeni ürün açılır — `stok_entegrasyonu.yeni_urunleri_yayinla` kapalıyken
+  **gizli** gelir, yönetici seçip yayınlar.
+- Stok sistemi yalnızca stok miktarını, liste fiyatını ve ürün bazında açıksa fiyatı
+  (`fiyat_stoktan`) ve stok durumunu (`stok_durumu_stoktan`; "siparişe bağlı" korunur) yazar.
+  Ad, açıklama, fotoğraf, kategori, marka, öne çıkarma, yayın sitenin yöneticisinindir.
+- Stokta silinen / web sitesinden kaldırılan ürün `stok_kaldirildi = true` ve gizli olur.
+- Anlık güncelleme: `POST /api/stok/webhook` (imza `X-Stok-Signature: v1=HMAC(sır, "ts.gövde")`,
+  5 dk pencere), ürünü kaynaktan yeniden okur. Güvenlik ağı: `GET /api/stok/esitle` her gece
+  (`vercel.json` cron, `Bearer CRON_SECRET`) ve paneldeki "Şimdi eşitle".
+- Ortam değişkenleri (repo herkese açık — değerler yalnız `.env.local` ve Vercel'de):
+  `STOK_API_URL` (Stok Yönetimi paneli, şu an `https://stok-yonetimi-steel.vercel.app`),
+  `STOK_API_KEY` (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı, firmanın sahibi
+  oluşturur), `STOK_WEBHOOK_SECRET` (aynı ekranda webhook eklenince verilen sır; webhook adresi
+  `https://<site>/api/stok/webhook`), `CRON_SECRET`.
+
 ## Bekleyen işler
 
 - [x] GitHub reposu açıldı ve `main` dalı push'landı (`origin` = `pers:Boztepe12/boztepe-as.git`,
@@ -77,3 +103,5 @@ oturum önce onu okumalı.
       "Hakkımızda" metni, gerçek ürün fotoğrafları, admin e-postası, domain yönlendirme kararı
 - [ ] Neon `DATABASE_URL` ve Cloudinary anahtarları — deploy anında lazım, geliştirme
       sırasında PGlite ile ilerleniyor
+- [ ] Canlıda Stok Yönetimi bağlantısı: Boztepe firması için Stok Yönetimi panelinde API
+      anahtarı + webhook (`/api/stok/webhook`) oluşturulup `STOK_*` değişkenleri Vercel'e girilecek

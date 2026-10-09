@@ -5,6 +5,33 @@ Yeni bir oturum bu dosyayı ve `CLAUDE.md`'yi okuyarak devam edebilir.
 
 ---
 
+## 🔗 Stok Yönetimi bağlantısı (9 Ekim 2026)
+
+Ürünler, fiyatlar ve stok artık Boztepe'nin stok sisteminden (Stok Yönetimi) çekilebiliyor;
+ayrıntı ve kurallar `CLAUDE.md` → "Stok Yönetimi bağlantısı".
+
+Yapılanlar:
+- Şema: `urunler` tablosuna `stok_*` alanları, `fiyat_stoktan`, `stok_durumu_stoktan`,
+  `stok_kaldirildi`; yeni tek satırlık `stok_entegrasyonu` tablosu (migrasyon `0001_stok_entegrasyonu`).
+- `lib/stok/` istemci + eşitleme + webhook imzası; `/api/stok/webhook`, `/api/stok/esitle`
+  (gece 04:00 UTC cron, `vercel.json`).
+- Panel: menüde **Stok Bağlantısı** — eşitleme durumu, "Şimdi eşitle", "Bağlantıyı dene",
+  "Tümünü yeniden oku", "yeni ürünler hemen yayınlansın" ayarı, *Yayın bekleyen* / *Yayında*
+  listeleri (toplu yayınla/gizle, telefonda kart). Ürün düzenleme sayfasında "Stok sisteminden"
+  kutusu: barkod, stok, liste fiyatı, son eşitleme; "Fiyat stok sisteminden gelsin" ve "Stok
+  durumu stok miktarından gelsin" anahtarları.
+
+Denendi (yerel PGlite + Stok Yönetimi'nin dev projesi, demo firma): 10 ürün gizli geldi, ikisi
+seçilip yayınlandı ve vitrinde göründü; stok sisteminde fiyat değişince imzalı webhook ürünü
+anında güncelledi, sahte imza reddedildi; `npm run build`, `eslint`, `tsc` temiz.
+
+Yerelde denemek için `.env.local`'a `STOK_API_URL`, `STOK_API_KEY`, `STOK_WEBHOOK_SECRET`,
+`CRON_SECRET` girilir, `npm run db:migrate` çalıştırılır (dev sunucusu kapalıyken).
+
+Bilinen tuzak: Stok Yönetimi'nin tek ürün yanıtı `{data: {...}}` içinde gelir, liste yanıtı
+`{data: [...], nextOffset, serverTime}`. Fiyatsız ürün API'de "removed" görünür (fiyatı
+girilince gelir).
+
 ## ⏸️ NEREDE KALDIM (son güncelleme: 30 Ağustos 2026)
 
 **Vitrin ve admin paneli bitti. Panelin on ekranı da çalışıyor ve gerçek isteklerle

@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   Package,
+  RefreshCw,
   Landmark,
   Settings,
   Tags,
@@ -26,6 +27,7 @@ import { cn } from "@/lib/utils";
 const MENU = [
   { ad: "Özet", yol: "/admin", simge: LayoutDashboard, tam: true },
   { ad: "Ürünler", yol: "/admin/urunler", simge: Package },
+  { ad: "Stok Bağlantısı", yol: "/admin/stok", simge: RefreshCw },
   { ad: "Talepler", yol: "/admin/talepler", simge: Inbox },
   { ad: "Kategoriler", yol: "/admin/kategoriler", simge: Tags },
   { ad: "Markalar", yol: "/admin/markalar", simge: Tags },
