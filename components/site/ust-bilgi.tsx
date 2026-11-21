@@ -33,6 +33,9 @@ export function UstBilgi({
 
   const [mobilAcik, setMobilAcik] = useState(false);
   const [acikKategori, setAcikKategori] = useState<number | null>(null);
+  const [urunMenusu, setUrunMenusu] = useState(false);
+  const kapatmaZamanlayici = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fareylaAcildi = useRef(0);
   const [aramaAcik, setAramaAcik] = useState(false);
   const [aramaTerimi, setAramaTerimi] = useState("");
   const aramaGirdisi = useRef<HTMLInputElement>(null);
@@ -48,6 +51,23 @@ export function UstBilgi({
     setMobilAcik(false);
     setAcikKategori(null);
     setAramaAcik(false);
+    setUrunMenusu(false);
+  }
+
+  /* Ürünler menüsü: fareyle girip çıkarken kısa bir gecikmeyle kapanır (paneline geçerken kapanmasın). */
+  function menuyuAc() {
+    if (kapatmaZamanlayici.current) clearTimeout(kapatmaZamanlayici.current);
+    if (!urunMenusu) fareylaAcildi.current = Date.now();
+    setUrunMenusu(true);
+  }
+  /* Tıklama: fare az önce açtıysa açık kalsın (yoksa üzerine gelip tıklayan kapatmış olur); dokunmatikte aç/kapa. */
+  function menuyeTikla() {
+    if (urunMenusu && Date.now() - fareylaAcildi.current < 500) return;
+    setUrunMenusu((a) => !a);
+  }
+  function menuyuKapat() {
+    if (kapatmaZamanlayici.current) clearTimeout(kapatmaZamanlayici.current);
+    kapatmaZamanlayici.current = setTimeout(() => setUrunMenusu(false), 150);
   }
 
   /* Mobil menü açıkken arka planın kaymasını engelle. */
@@ -61,6 +81,14 @@ export function UstBilgi({
   useEffect(() => {
     if (aramaAcik) aramaGirdisi.current?.focus();
   }, [aramaAcik]);
+
+  /* Esc ürünler menüsünü kapatır. */
+  useEffect(() => {
+    if (!urunMenusu) return;
+    const tus = (o: KeyboardEvent) => o.key === "Escape" && setUrunMenusu(false);
+    window.addEventListener("keydown", tus);
+    return () => window.removeEventListener("keydown", tus);
+  }, [urunMenusu]);
 
   function aramaGonder(olay: React.FormEvent) {
     olay.preventDefault();
@@ -114,48 +142,25 @@ export function UstBilgi({
           </span>
         </Link>
 
-        {/* Masaüstü gezinme */}
+        {/* Masaüstü gezinme: kategoriler tek "Ürünler" menüsünde, kaç tane olursa olsun bar sıkışmaz. */}
         <nav className="ml-6 hidden items-center gap-1 lg:flex">
-          {kategoriler.map((kategori) => (
-            <div
-              key={kategori.id}
-              className="relative"
-              onMouseEnter={() => setAcikKategori(kategori.id)}
-              onMouseLeave={() => setAcikKategori(null)}
-            >
-              <Link
-                href={`/kategori/${kategori.slug}`}
-                className={cn(
-                  "flex items-center gap-1 rounded-yumusak px-3 py-2 text-[0.9375rem] font-medium transition-colors",
-                  yol.startsWith(`/kategori/${kategori.slug}`)
-                    ? "text-kiremit"
-                    : "text-murekkep hover:text-kiremit",
-                )}
-              >
-                {kategori.ad}
-                {kategori.altKategoriler.length > 0 && (
-                  <ChevronDown className="size-3.5 text-solgun" />
-                )}
-              </Link>
-
-              {kategori.altKategoriler.length > 0 && acikKategori === kategori.id && (
-                <div className="absolute left-0 top-full w-60 pt-1">
-                  <div className="overflow-hidden rounded-kart border border-cizgi bg-yuzey py-2 shadow-panel">
-                    {kategori.altKategoriler.map((alt) => (
-                      <Link
-                        key={alt.id}
-                        href={`/kategori/${alt.slug}`}
-                        className="flex items-center justify-between px-4 py-2 text-sm text-murekkep hover:bg-kum hover:text-kiremit"
-                      >
-                        {alt.ad}
-                        <span className="rakam text-xs text-solgun">{alt.urunAdedi}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+          <div onMouseEnter={menuyuAc} onMouseLeave={menuyuKapat}>
+            <button
+              type="button"
+              onClick={menuyeTikla}
+              aria-expanded={urunMenusu}
+              aria-controls="urun-menusu"
+              className={cn(
+                "flex items-center gap-1 rounded-yumusak px-3 py-2 text-[0.9375rem] font-medium transition-colors",
+                urunMenusu || yol.startsWith("/kategori/") || yol.startsWith("/urun")
+                  ? "text-kiremit"
+                  : "text-murekkep hover:text-kiremit",
               )}
-            </div>
-          ))}
+            >
+              Ürünler
+              <ChevronDown className={cn("size-4 transition-transform", urunMenusu && "rotate-180")} />
+            </button>
+          </div>
 
           {SABIT_BAGLANTILAR.slice(1).map((baglanti) => (
             <Link
@@ -208,6 +213,57 @@ export function UstBilgi({
         </div>
       </div>
 
+      {/* Ürünler menüsü (masaüstü): her ana kategori bir sütun, altında alt kategorileri. */}
+      {urunMenusu && (
+        <div
+          id="urun-menusu"
+          onMouseEnter={menuyuAc}
+          onMouseLeave={menuyuKapat}
+          className="absolute inset-x-0 top-full hidden border-b border-cizgi bg-yuzey shadow-panel lg:block"
+        >
+          <div className="mx-auto max-w-7xl px-6 py-6">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-solgun">Kategoriler</p>
+              <Link href="/urunler" className="text-sm font-medium text-kiremit hover:underline">
+                Tüm ürünleri gör →
+              </Link>
+            </div>
+            {kategoriler.length === 0 ? (
+              <p className="text-sm text-murekkep-yumusak">Henüz kategori yok.</p>
+            ) : (
+              <div className="grid max-h-[65vh] grid-cols-4 gap-x-8 gap-y-6 overflow-y-auto">
+                {kategoriler.map((kategori) => (
+                  <div key={kategori.id} className="min-w-0">
+                    <Link
+                      href={`/kategori/${kategori.slug}`}
+                      className="flex items-baseline justify-between gap-2 font-govde font-semibold text-murekkep hover:text-kiremit"
+                    >
+                      <span className="truncate">{kategori.ad}</span>
+                      <span className="rakam shrink-0 text-xs font-normal text-solgun">{kategori.urunAdedi}</span>
+                    </Link>
+                    {kategori.altKategoriler.length > 0 && (
+                      <ul className="mt-2 space-y-1 border-l border-cizgi pl-3">
+                        {kategori.altKategoriler.map((alt) => (
+                          <li key={alt.id}>
+                            <Link
+                              href={`/kategori/${alt.slug}`}
+                              className="flex items-baseline justify-between gap-2 py-0.5 text-sm text-murekkep-yumusak hover:text-kiremit"
+                            >
+                              <span className="truncate">{alt.ad}</span>
+                              <span className="rakam shrink-0 text-xs text-solgun">{alt.urunAdedi}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Açılır arama alanı */}
       {aramaAcik && (
         <div className="border-t border-cizgi bg-yuzey">
@@ -250,6 +306,13 @@ export function UstBilgi({
             </div>
 
             <nav className="flex-1 overflow-y-auto px-2 py-3">
+              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-[0.16em] text-solgun">Ürünler</p>
+              <Link
+                href="/urunler"
+                className="block rounded-yumusak px-3 py-2.5 font-medium text-kiremit hover:bg-kum-koyu"
+              >
+                Tüm ürünler
+              </Link>
               {kategoriler.map((kategori) => (
                 <div key={kategori.id} className="mb-1">
                   <div className="flex items-center">
@@ -298,7 +361,7 @@ export function UstBilgi({
 
               <div className="my-3 border-t border-cizgi" />
 
-              {SABIT_BAGLANTILAR.map((baglanti) => (
+              {SABIT_BAGLANTILAR.slice(1).map((baglanti) => (
                 <Link
                   key={baglanti.yol}
                   href={baglanti.yol}
