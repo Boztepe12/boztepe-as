@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { mevcutOturum } from "@/lib/auth/oturum";
 
 import { GirisFormu } from "./giris-formu";
+import { MarkaLogosu } from "@/components/site/marka-logosu";
 
 export const metadata: Metadata = {
   title: "Yönetici Girişi",
@@ -22,11 +23,8 @@ export default async function GirisSayfasi() {
     <div className="flex min-h-screen items-center justify-center bg-kum px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Link href="/" className="inline-block">
-            <span className="font-baslik text-3xl tracking-tight text-murekkep">BOZTEPE</span>
-            <span className="ml-1.5 text-xs font-medium uppercase tracking-[0.2em] text-kiremit">
-              A.Ş.
-            </span>
+          <Link href="/" className="inline-block" aria-label="Boztepe A.Ş. ana sayfa">
+            <MarkaLogosu oncelikli className="mx-auto h-14" />
           </Link>
           <p className="mt-2 text-sm text-murekkep-yumusak">Yönetim paneli</p>
         </div>

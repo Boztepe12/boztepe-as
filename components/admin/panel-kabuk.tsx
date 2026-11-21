@@ -29,6 +29,7 @@ import { MENU_CEREZI } from "@/lib/admin-menu";
 import { cikisYap } from "@/lib/auth/giris";
 import type { OturumBilgisi } from "@/lib/auth/oturum";
 import { cn } from "@/lib/utils";
+import { MarkaIsareti, MarkaLogosu } from "@/components/site/marka-logosu";
 
 /*
  * Yönetim panelinin menüsü tek yerde: gruplar ve satırlar. Yapı Selstok
@@ -216,14 +217,12 @@ function KenarCubugu({
       <div className={cn("border-b border-cizgi", dar ? "flex justify-center px-2 py-4" : "px-5 py-4")}>
         <Link href="/admin" title={dar ? "Boztepe Yönetim" : undefined}>
           {dar ? (
-            <span className="flex size-8 items-center justify-center rounded-yumusak bg-kiremit font-baslik text-lg text-white">
-              B
-            </span>
+            <MarkaIsareti className="h-7" />
           ) : (
-            <>
-              <span className="font-baslik text-xl tracking-tight text-murekkep">BOZTEPE</span>
-              <span className="ml-1.5 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-kiremit">Yönetim</span>
-            </>
+            <span className="block">
+              <MarkaLogosu className="h-9" />
+              <span className="mt-1 block text-[0.65rem] font-medium uppercase tracking-[0.2em] text-kiremit">Yönetim paneli</span>
+            </span>
           )}
         </Link>
       </div>

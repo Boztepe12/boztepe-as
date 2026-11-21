@@ -10,6 +10,7 @@ import { WhatsappSimgesi } from "@/components/site/marka-simgeleri";
 import type { KategoriDugumu } from "@/lib/sorgular/kategoriler";
 import type { IletisimAyari } from "@/lib/sorgular/icerik";
 import { cn, telefonBicimle, whatsappBaglantisi } from "@/lib/utils";
+import { MarkaLogosu } from "@/components/site/marka-logosu";
 
 const SABIT_BAGLANTILAR = [
   { ad: "Tüm Ürünler", yol: "/urunler" },
@@ -133,13 +134,8 @@ export function UstBilgi({
           <Menu className="size-5" />
         </button>
 
-        <Link href="/" className="shrink-0">
-          <span className="font-baslik text-xl leading-none tracking-tight text-murekkep sm:text-2xl">
-            BOZTEPE
-          </span>
-          <span className="ml-1.5 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-kiremit">
-            A.Ş.
-          </span>
+        <Link href="/" className="shrink-0" aria-label="Boztepe A.Ş. ana sayfa">
+          <MarkaLogosu oncelikli className="h-9 sm:h-11" />
         </Link>
 
         {/* Masaüstü gezinme: kategoriler tek "Ürünler" menüsünde, kaç tane olursa olsun bar sıkışmaz. */}
@@ -294,7 +290,7 @@ export function UstBilgi({
           />
           <div className="absolute inset-y-0 left-0 flex w-[85%] max-w-sm flex-col bg-kum shadow-panel">
             <div className="flex items-center justify-between border-b border-cizgi px-5 py-4">
-              <span className="font-baslik text-xl text-murekkep">BOZTEPE A.Ş.</span>
+              <MarkaLogosu className="h-9" />
               <button
                 type="button"
                 onClick={() => setMobilAcik(false)}

@@ -10,6 +10,7 @@ import type { BankaHesabi } from "@/lib/db/schema";
 import type { IletisimAyari, SosyalAyari } from "@/lib/sorgular/icerik";
 import type { KategoriDugumu } from "@/lib/sorgular/kategoriler";
 import { ibanBicimle, telefonBicimle, whatsappBaglantisi } from "@/lib/utils";
+import { MarkaLogosu } from "@/components/site/marka-logosu";
 
 const KURUMSAL_BAGLANTILAR = [
   { ad: "Hakkımızda", yol: "/hakkimizda" },
@@ -40,10 +41,7 @@ export function AltBilgi({
           {/* Firma */}
           <div>
             <div className="mb-4">
-              <span className="font-baslik text-2xl tracking-tight text-murekkep">BOZTEPE</span>
-              <span className="ml-1.5 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-kiremit">
-                A.Ş.
-              </span>
+              <MarkaLogosu className="h-12" />
             </div>
             <p className="text-sm leading-relaxed text-murekkep-yumusak">
               {iletisim.firmaAdi}
