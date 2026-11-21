@@ -24,6 +24,13 @@ Yeni bir oturum bu dosyayı ve `CLAUDE.md`'yi okuyarak devam edebilir.
   durumuyla döndü. Katalog: PDF yükleme (yerel) ve web bağlantısı eklendi, hatalı form uyarı verdi,
   vitrinde gruplu kartlar ve PDF yeni sekmede açıldı. `tsc`, `eslint`, `npm run build` temiz.
 
+- **Vitrin düzeni (22 Kasım gecesi):** üst menüde kategoriler yerine tek "Ürünler ▾" (tam genişlik
+  panel, her ana kategori bir sütun); ürün listesi/kategori sayfasında sol panelin başında kategori
+  ağacı; metin logo yerine gerçek Boztepe a.ş. logosu (`public/marka/`, `MarkaLogosu`), site simgesi
+  B işareti (`app/icon.png`); IBAN mod-97 doğrulaması (geçersizler sitede gösterilmez — seed'deki
+  `TR00…` IBAN'lar bu yüzden görünmüyor; gerçekleri Banka Hesapları'ndan girilmeli); görselsiz
+  afişte koyu zemin; seed'de gerçek adres ve harita bağlantısı.
+
 ---
 
 ## 🔗 Stok Yönetimi bağlantısı (9 Ekim 2026)
