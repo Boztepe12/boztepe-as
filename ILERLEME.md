@@ -14,6 +14,10 @@ Yeni bir oturum bu dosyayı ve `CLAUDE.md`'yi okuyarak devam edebilir.
   Selstok'un Supabase şeması uygulanıp panel yayınlanana kadar gerçek bağlantıda kategoriler gelmez:
   `/categories` 404 dönünce kategori adımı atlanır, ürünler eskisi gibi eşitlenir.
 - **Kataloglar:** `/kataloglar` + admin `/admin/kataloglar`, migrasyon `0003_kataloglar`.
+- **Admin menüsü** Selstok panelinin yapısında (`components/admin/panel-kabuk.tsx`): gruplu ve simgeli
+  (Günlük · Katalog · İçerik · Ayarlar; tek liste `MENU`), simge şeridine daraltılabilir (çerez
+  `boztepe_menu`, adı `lib/admin-menu.ts`'de — "use client" dosyasından sunucuya sabit aktarılamaz),
+  üst barda "Grup › Sayfa" ve "Siteyi görüntüle", telefonda çekmece, altta hesap (→ Hesabım) ve çıkış.
 - Denendi (yerelde, Selstok API'sini taklit eden bir test sunucusuyla): 3 seviyeli ağaç geldi,
   eski 20 kategori kalktı; "Beyaz Eşya" sayfası alt dallardaki ürünleri de listeliyor; kategori
   gizlenince menüden ve ürünleri vitrinden kalktı, açılınca aynı kayıt ve ürünler önceki yayın
