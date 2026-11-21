@@ -568,8 +568,8 @@ const AYARLAR: Record<string, unknown> = {
     telefon: "0422 321 20 36",
     whatsapp: "0507 464 12 74",
     eposta: "boztepehalep@hotmail.com",
-    adres: "Malatya",
-    haritaBaglantisi: "",
+    adres: "İnönü Mah. Misafirhane Sk. No:11, Yeşilyurt/Malatya",
+    haritaBaglantisi: "https://www.google.com/maps/search/?api=1&query=Boztepe+A.%C5%9E.+%C4%B0n%C3%B6n%C3%BC+Mah.+Misafirhane+Sk.+No%3A11+Ye%C5%9Filyurt+Malatya",
     calismaSaatleri: [
       { gun: "Pazartesi - Cumartesi", saat: "09:00 - 19:00" },
       { gun: "Pazar", saat: "Kapalı" },
