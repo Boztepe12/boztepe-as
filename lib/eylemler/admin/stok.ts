@@ -19,7 +19,10 @@ export async function stokEsitle(tam: boolean): Promise<StokEylemSonucu> {
   await eylemIcinOturum();
   try {
     const r = await esitle({ tam });
+    const k = r.kategoriler;
     const parcalar = [
+      k && (k.eklenen || k.guncellenen || k.silinen) &&
+        `kategoriler: ${[k.eklenen && `${k.eklenen} yeni`, k.guncellenen && `${k.guncellenen} güncellendi`, k.silinen && `${k.silinen} kaldırıldı`].filter(Boolean).join(", ")}`,
       r.eklenen && `${r.eklenen} yeni ürün`,
       r.guncellenen && `${r.guncellenen} ürün güncellendi`,
       r.kaldirilan && `${r.kaldirilan} ürün kaldırıldı`,

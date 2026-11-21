@@ -81,11 +81,18 @@ export const kategoriler = pgTable(
     anaSayfadaGoster: boolean("ana_sayfada_goster").default(false).notNull(),
     seoBaslik: varchar("seo_baslik", { length: 200 }),
     seoAciklama: text("seo_aciklama"),
+    /**
+     * Stok sistemindeki (Selstok) kategorinin kimliği. Bağlantı kuruluysa
+     * kategori ağacı oradan gelir: ad, üst kategori ve sıra eşitlemeyle yazılır,
+     * görsel, açıklama, ana sayfa ve SEO sitenin yöneticisinindir.
+     */
+    stokKategoriId: varchar("stok_kategori_id", { length: 64 }),
     ...zamanDamgalari,
   },
   (t) => [
     uniqueIndex("kategoriler_slug_idx").on(t.slug),
     index("kategoriler_ust_idx").on(t.ustKategoriId),
+    uniqueIndex("kategoriler_stok_kategori_idx").on(t.stokKategoriId),
   ],
 );
 
@@ -172,6 +179,8 @@ export const urunler = pgTable(
     stokDurumuStoktan: boolean("stok_durumu_stoktan").default(true).notNull(),
     /** Stok sisteminde silindi ya da web sitesinden kaldırıldı; vitrinde gösterilmez. */
     stokKaldirildi: boolean("stok_kaldirildi").default(false).notNull(),
+    /** Stok sistemi ürünü kaldırmadan önceki yayın durumu; ürün geri gelince buna döner. */
+    stokOncekiAktif: boolean("stok_onceki_aktif"),
     stokEsitlemeTarihi: timestamp("stok_esitleme_tarihi", { withTimezone: true }),
 
     ...zamanDamgalari,
@@ -244,6 +253,38 @@ export const afisler = pgTable("afisler", {
   bitisTarihi: timestamp("bitis_tarihi", { withTimezone: true }),
   ...zamanDamgalari,
 });
+
+/* ------------------------------------------------------------------ */
+/* Kataloglar (markaların PDF katalogları ve online katalog bağlantıları) */
+/* ------------------------------------------------------------------ */
+
+export const katalogTurEnum = pgEnum("katalog_tur", ["pdf", "baglanti"]);
+
+export const kataloglar = pgTable(
+  "kataloglar",
+  {
+    id: serial("id").primaryKey(),
+    baslik: varchar("baslik", { length: 160 }).notNull(),
+    /** Sayfadaki grup başlığı, ör. "Mobilya", "Beyaz Eşya", "Halı". */
+    grup: varchar("grup", { length: 80 }),
+    aciklama: text("aciklama"),
+    tur: katalogTurEnum("tur").default("pdf").notNull(),
+    /** PDF'in adresi (yüklenen dosya) ya da markanın online katalog sayfası. */
+    baglanti: text("baglanti"),
+    /** Yüklenen PDF'in depo kimliği; bağlantı türünde boş. */
+    dosyaKimligi: text("dosya_kimligi"),
+    dosyaAdi: varchar("dosya_adi", { length: 240 }),
+    dosyaBoyutu: integer("dosya_boyutu"),
+    kapakUrl: text("kapak_url"),
+    kapakKimligi: text("kapak_kimligi"),
+    sira: integer("sira").default(0).notNull(),
+    aktif: boolean("aktif").default(true).notNull(),
+    ...zamanDamgalari,
+  },
+  (t) => [index("kataloglar_aktif_idx").on(t.aktif, t.sira)],
+);
+
+export type Katalog = typeof kataloglar.$inferSelect;
 
 /* ------------------------------------------------------------------ */
 /* Teklif / siparis talepleri                                          */

@@ -15,6 +15,20 @@
       "when": 1791493789518,
       "tag": "0001_stok_entegrasyonu",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795297117727,
+      "tag": "0002_stok_kategorileri",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795297419416,
+      "tag": "0003_kataloglar",
+      "breakpoints": true
     }
   ]
 }

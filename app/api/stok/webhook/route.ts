@@ -1,9 +1,10 @@
-import { barkodEsitle } from "@/lib/stok/esitle";
+import { barkodEsitle, esitle } from "@/lib/stok/esitle";
 import { imzaGecerli } from "@/lib/stok/imza";
 
 /**
- * POST /api/stok/webhook — Stok Yönetimi'nin product.updated ve stock.changed
- * bildirimleri. İmza doğrulanır; ürün barkodundan stok sisteminden yeniden
+ * POST /api/stok/webhook — Stok Yönetimi'nin product.updated, stock.changed ve
+ * category.updated bildirimleri. category.updated: kategori ağacı yeniden okunur,
+ * ardından son eşitlemeden beri değişen ürünler (taşınan, gizlenen kategorideki). İmza doğrulanır; ürün barkodundan stok sisteminden yeniden
  * okunup uygulanır (bildirimdeki değere değil, kaynağın güncel hâline güvenilir).
  * 2xx dışındaki her yanıtı Stok Yönetimi bir süre sonra tekrar dener.
  */
@@ -15,11 +16,22 @@ export async function POST(request: Request) {
     return new Response("invalid signature", { status: 401 });
   }
   let barkod: string | undefined;
+  let olayAdi: string | undefined;
   try {
     const olay = JSON.parse(govde) as { event?: string; data?: { barcode?: string } };
     barkod = olay.data?.barcode;
+    olayAdi = olay.event;
   } catch {
     return new Response("invalid json", { status: 400 });
+  }
+  if (olayAdi === "category.updated") {
+    try {
+      const sonuc = await esitle();
+      return Response.json({ ok: true, sonuc });
+    } catch (e) {
+      console.error("stok webhook (kategori)", (e as Error).message);
+      return new Response("retry later", { status: 503 });
+    }
   }
   if (!barkod) return Response.json({ ok: true, skipped: true });
   try {

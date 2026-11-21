@@ -41,11 +41,17 @@ export function KatalogFormu({
   tur,
   kayit,
   ustSecenekleri = [],
+  stoktanYol,
 }: {
   tur: "kategori" | "marka";
   kayit?: KatalogKaydi;
   /** Kategori formunda üst kategori listesi; markada boş geçilir. */
   ustSecenekleri?: { id: number; etiket: string }[];
+  /**
+   * Kategori stok sisteminden (Selstok) geliyor: tam yolu. Adı, yeri, sırası
+   * ve yayını orada değişir; burada görsel, açıklama, adres, ana sayfa ve SEO.
+   */
+  stoktanYol?: string;
 }) {
   const router = useRouter();
   const [deger, setDeger] = useState<FormDegeri>({
@@ -63,6 +69,7 @@ export function KatalogFormu({
   const [kaydediliyor, basla] = useTransition();
 
   const kategoriMi = tur === "kategori";
+  const stoktan = kategoriMi && stoktanYol !== undefined;
   const listeYolu = kategoriMi ? "/admin/kategoriler" : "/admin/markalar";
   const vitrinYolu = kategoriMi ? "/kategori" : "/marka";
 
@@ -120,6 +127,13 @@ export function KatalogFormu({
     <div className="space-y-5">
       <Panel baslik="Bilgiler">
         <div className="space-y-4 p-5">
+          {stoktan && (
+            <p className="rounded-kart border border-cizgi bg-zemin px-4 py-3 text-sm text-murekkep-yumusak">
+              Bu kategori stok sisteminden gelir: <b className="text-murekkep">{stoktanYol}</b>. Adı, yeri, sırası ve sitede
+              görünüp görünmemesi Selstok panelinde (Web sitesi entegrasyonu → Sitedeki kategoriler) değişir. Buradan görseli,
+              açıklamayı, sayfa adresini ve ana sayfada gösterilmesini düzenleyebilirsiniz.
+            </p>
+          )}
           <Alan
             etiket={kategoriMi ? "Kategori adı" : "Marka adı"}
             zorunlu
@@ -131,10 +145,11 @@ export function KatalogFormu({
               placeholder={kategoriMi ? "Örn. Çamaşır Makinesi" : "Örn. Vestel"}
               aria-invalid={Boolean(hatalar.ad)}
               autoFocus={!kayit}
+              readOnly={stoktan}
             />
           </Alan>
 
-          {kategoriMi && (
+          {kategoriMi && !stoktan && (
             <Alan
               etiket="Üst kategori"
               ipucu="Boş bırakılırsa ana menüde üst seviye kategori olur."
@@ -168,14 +183,16 @@ export function KatalogFormu({
           </Alan>
 
           <AlanIzgarasi>
-            <Alan etiket="Sıra" ipucu="Küçük sayı önce görünür.">
-              <Girdi
-                value={deger.sira}
-                onChange={(olay) => guncelle("sira", olay.target.value)}
-                inputMode="numeric"
-                className="rakam"
-              />
-            </Alan>
+            {!stoktan && (
+              <Alan etiket="Sıra" ipucu="Küçük sayı önce görünür.">
+                <Girdi
+                  value={deger.sira}
+                  onChange={(olay) => guncelle("sira", olay.target.value)}
+                  inputMode="numeric"
+                  className="rakam"
+                />
+              </Alan>
+            )}
 
             <Alan
               etiket="Sayfa adresi"
@@ -195,6 +212,7 @@ export function KatalogFormu({
           </AlanIzgarasi>
 
           <div className="space-y-3">
+            {!stoktan && (
             <Onay
               checked={deger.aktif}
               onChange={(olay) => guncelle("aktif", olay.target.checked)}
@@ -207,6 +225,7 @@ export function KatalogFormu({
                 </span>
               }
             />
+            )}
             {kategoriMi && (
               <Onay
                 checked={deger.anaSayfadaGoster}

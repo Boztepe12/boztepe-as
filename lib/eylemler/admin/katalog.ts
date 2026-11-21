@@ -8,6 +8,7 @@ import { eylemIcinOturum } from "@/lib/auth/koruma";
 import { db } from "@/lib/db";
 import { kategoriler, markalar, urunler } from "@/lib/db/schema";
 import { gorselSil, gorselYukle } from "@/lib/storage";
+import { stokBaglantisiVar } from "@/lib/stok/istemci";
 import { slugOlustur } from "@/lib/utils";
 
 import type { EylemSonucu } from "./urun";
@@ -91,6 +92,23 @@ export async function kategoriKaydet(girdi: unknown): Promise<EylemSonucu> {
 
   const v = cozum.data;
 
+  /*
+   * Stok sisteminden gelen kategoride ad, üst kategori, sıra ve yayın oradan
+   * gelir (her eşitlemede yeniden yazılır); formdaki değerleri yok say. Bağlantı
+   * kuruluyken elle yeni kategori de açılmaz: ağaç tamamen stok sisteminindir.
+   */
+  if (v.id) {
+    const stoktan = (await db.select().from(kategoriler).where(eq(kategoriler.id, v.id)).limit(1))[0];
+    if (stoktan?.stokKategoriId) {
+      v.ad = stoktan.ad;
+      v.ustKategoriId = stoktan.ustKategoriId;
+      v.sira = stoktan.sira;
+      v.aktif = stoktan.aktif;
+    }
+  } else if (stokBaglantisiVar()) {
+    return { durum: "hata", mesaj: "Kategoriler stok sisteminden (Selstok) gelir; yeni kategoriyi Selstok panelinde açın." };
+  }
+
   /* Kategori kendi altına ya da kendi alt dalına taşınırsa menü sonsuz döngüye girer. */
   if (v.id && v.ustKategoriId) {
     if (v.ustKategoriId === v.id) {
@@ -155,10 +173,17 @@ export async function kategoriSil(id: number): Promise<EylemSonucu> {
   await eylemIcinOturum();
 
   const kayitlar = await db
-    .select({ gorselKimligi: kategoriler.gorselKimligi })
+    .select({ gorselKimligi: kategoriler.gorselKimligi, stokKategoriId: kategoriler.stokKategoriId })
     .from(kategoriler)
     .where(eq(kategoriler.id, id))
     .limit(1);
+
+  if (kayitlar[0]?.stokKategoriId) {
+    return {
+      durum: "hata",
+      mesaj: "Bu kategori stok sisteminden gelir. Siteden kaldırmak için Selstok panelinde Web sitesi entegrasyonu → Sitedeki kategoriler'den gizleyin.",
+    };
+  }
 
   if (kayitlar.length === 0) return { durum: "hata", mesaj: "Kategori bulunamadı." };
 

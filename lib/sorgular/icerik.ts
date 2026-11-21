@@ -2,6 +2,7 @@ import { and, asc, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
+  kataloglar,
   afisler,
   ayarlar,
   bankaHesaplari,
@@ -194,4 +195,44 @@ export async function aktifBankaHesaplari() {
     .from(bankaHesaplari)
     .where(eq(bankaHesaplari.aktif, true))
     .orderBy(asc(bankaHesaplari.sira), asc(bankaHesaplari.id));
+}
+
+export type KatalogGrubu = {
+  grup: string;
+  kataloglar: {
+    id: number;
+    baslik: string;
+    aciklama: string | null;
+    tur: "pdf" | "baglanti";
+    baglanti: string;
+    kapakUrl: string | null;
+    dosyaBoyutu: number | null;
+  }[];
+};
+
+/**
+ * Sitedeki kataloglar, gruplanmış: gruplar en küçük sıralı kataloglarına göre,
+ * grubu olmayanlar "Diğer" başlığında en sonda.
+ */
+export async function kataloglarSayfasi(): Promise<KatalogGrubu[]> {
+  const satirlar = await db
+    .select()
+    .from(kataloglar)
+    .where(eq(kataloglar.aktif, true))
+    .orderBy(asc(kataloglar.sira), asc(kataloglar.id));
+  const gruplar = new Map<string, KatalogGrubu>();
+  for (const k of satirlar) {
+    if (!k.baglanti) continue;
+    const ad = k.grup?.trim() || "Diğer";
+    const g = gruplar.get(ad) ?? { grup: ad, kataloglar: [] };
+    g.kataloglar.push({
+      id: k.id, baslik: k.baslik, aciklama: k.aciklama, tur: k.tur, baglanti: k.baglanti,
+      kapakUrl: k.kapakUrl, dosyaBoyutu: k.dosyaBoyutu,
+    });
+    gruplar.set(ad, g);
+  }
+  const liste = [...gruplar.values()];
+  const digerIndeksi = liste.findIndex((g) => g.grup === "Diğer");
+  if (digerIndeksi >= 0) liste.push(...liste.splice(digerIndeksi, 1));
+  return liste;
 }

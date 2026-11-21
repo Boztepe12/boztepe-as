@@ -6,11 +6,14 @@ import { SayfaBasligi } from "@/components/admin/panel-parcalari";
 import { ButonBaglanti } from "@/components/ui/buton";
 import { BosDurum } from "@/components/ui/durum";
 import { tumKategoriler } from "@/lib/sorgular/admin";
+import { stokBaglantisiVar } from "@/lib/stok/istemci";
 
 export const metadata: Metadata = { title: "Kategoriler" };
 
 export default async function KategorilerSayfasi() {
   const kategoriler = await tumKategoriler();
+  /* Stok bağlantısı kuruluysa ağaç Selstok'tan gelir: burada yeni kategori açılmaz. */
+  const stoktan = stokBaglantisiVar();
 
   /*
    * Liste düz geliyor; alt kategoriler üstlerinin hemen altında ve girintili
@@ -38,12 +41,18 @@ export default async function KategorilerSayfasi() {
     <>
       <SayfaBasligi
         baslik="Kategoriler"
-        aciklama="Menüdeki ve ana sayfadaki kategori düzenini buradan yönetirsiniz."
+        aciklama={
+          stoktan
+            ? "Kategoriler stok sisteminden (Selstok) gelir. Ekleme, taşıma, sıralama ve siteden gizleme Selstok panelinde: Web sitesi entegrasyonu → Sitedeki kategoriler. Buradan görsel, açıklama ve ana sayfa ayarı yapılır."
+            : "Menüdeki ve ana sayfadaki kategori düzenini buradan yönetirsiniz."
+        }
         eylem={
-          <ButonBaglanti href="/admin/kategoriler/yeni">
-            <Plus className="size-4" />
-            Yeni kategori
-          </ButonBaglanti>
+          stoktan ? undefined : (
+            <ButonBaglanti href="/admin/kategoriler/yeni">
+              <Plus className="size-4" />
+              Yeni kategori
+            </ButonBaglanti>
+          )
         }
       />
 
@@ -51,12 +60,18 @@ export default async function KategorilerSayfasi() {
         <BosDurum
           simge={<Tags className="size-10" />}
           baslik="Henüz kategori yok"
-          aciklama="Ürünleri gruplamak için önce kategori ekleyin."
+          aciklama={
+            stoktan
+              ? "Kategoriler stok sisteminden gelir. Stok Bağlantısı ekranından eşitleyin."
+              : "Ürünleri gruplamak için önce kategori ekleyin."
+          }
           eylem={
-            <ButonBaglanti href="/admin/kategoriler/yeni">
-              <Plus className="size-4" />
-              Yeni kategori ekle
-            </ButonBaglanti>
+            stoktan ? undefined : (
+              <ButonBaglanti href="/admin/kategoriler/yeni">
+                <Plus className="size-4" />
+                Yeni kategori ekle
+              </ButonBaglanti>
+            )
           }
         />
       ) : (

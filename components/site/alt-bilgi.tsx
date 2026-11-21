@@ -16,6 +16,7 @@ const KURUMSAL_BAGLANTILAR = [
   { ad: "Galeri", yol: "/galeri" },
   { ad: "Kampanyalar", yol: "/kampanyalar" },
   { ad: "Markalar", yol: "/markalar" },
+  { ad: "Kataloglar", yol: "/kataloglar" },
   { ad: "İletişim", yol: "/iletisim" },
 ];
 

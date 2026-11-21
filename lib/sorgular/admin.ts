@@ -3,6 +3,7 @@ import { and, asc, desc, eq, ilike, inArray, isNotNull, or, sql, type SQL } from
 import { db } from "@/lib/db";
 import {
   afisler,
+  kataloglar,
   bankaHesaplari,
   galeriGorselleri,
   kategoriler,
@@ -407,4 +408,19 @@ export async function yoneticiMarkaGetir(id: number) {
 export async function yoneticiAfisGetir(id: number) {
   const kayitlar = await db.select().from(afisler).where(eq(afisler.id, id)).limit(1);
   return kayitlar[0] ?? null;
+}
+
+export async function tumKataloglar() {
+  return db.select().from(kataloglar).orderBy(asc(kataloglar.grup), asc(kataloglar.sira), asc(kataloglar.id));
+}
+
+export async function yoneticiKatalogGetir(id: number) {
+  const kayitlar = await db.select().from(kataloglar).where(eq(kataloglar.id, id)).limit(1);
+  return kayitlar[0] ?? null;
+}
+
+/** Formdaki grup önerileri: kullanılan grup adları. */
+export async function katalogGruplari(): Promise<string[]> {
+  const r = await db.selectDistinct({ grup: kataloglar.grup }).from(kataloglar).where(isNotNull(kataloglar.grup));
+  return r.map((x) => x.grup!).sort((a, b) => a.localeCompare(b, "tr"));
 }

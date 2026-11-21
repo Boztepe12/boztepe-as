@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { KatalogFormu } from "@/components/admin/katalog-formu";
 import { SayfaBasligi } from "@/components/admin/panel-parcalari";
 import { tumKategoriler } from "@/lib/sorgular/admin";
+import { stokBaglantisiVar } from "@/lib/stok/istemci";
 
 export const metadata: Metadata = { title: "Yeni kategori" };
 
@@ -31,7 +32,14 @@ export default async function YeniKategoriSayfasi() {
         aciklama="Kaydettikten sonra kategori görselini ekleyebilirsiniz."
       />
 
-      <KatalogFormu tur="kategori" ustSecenekleri={ustSecenekleri} />
+      {stokBaglantisiVar() ? (
+        <p className="rounded-kart border border-cizgi bg-yuzey p-5 text-sm text-murekkep-yumusak">
+          Kategoriler stok sisteminden (Selstok) gelir. Yeni kategoriyi Selstok panelinde açın; bir sonraki eşitlemede
+          (ya da hemen, Stok Bağlantısı → Şimdi eşitle) siteye gelir.
+        </p>
+      ) : (
+        <KatalogFormu tur="kategori" ustSecenekleri={ustSecenekleri} />
+      )}
     </div>
   );
 }

@@ -19,6 +19,8 @@ export type StokUrunu = {
   name?: string;
   description?: string | null;
   category?: string | null;
+  /** Kategori listesindeki kimlik (`/categories`); kategorisiz ürün: null. */
+  categoryId?: string | null;
   listPrice?: string;
   vatRate?: string;
   unit?: string;
@@ -26,6 +28,17 @@ export type StokUrunu = {
   imageUrl?: string | null;
   updatedAt?: string;
   stock?: string;
+};
+
+/** Sitede görünen bir kategori; liste ağaç sırasındadır (önce üst, sonra altları). */
+export type StokKategori = {
+  id: string;
+  name: string;
+  parentId: string | null;
+  sortOrder: number;
+  path: string;
+  depth: number;
+  productCount: number;
 };
 
 export type StokSayfasi = { data: StokUrunu[]; nextOffset: number | null; serverTime: string };
@@ -76,6 +89,11 @@ export async function urunGetir(barkod: string): Promise<StokUrunu | null> {
     if (e instanceof StokApiHatasi && e.durum === 404) return null;
     throw e;
   }
+}
+
+/** Sitenin kategori ağacı: stok sisteminde siteden gizlenmemiş bütün kategoriler. */
+export async function kategoriListesi(): Promise<StokKategori[]> {
+  return (await istek<{ data: StokKategori[] }>("/categories")).data;
 }
 
 export async function baglantiyiDene(): Promise<{ firma: string }> {

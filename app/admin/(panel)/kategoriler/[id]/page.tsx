@@ -41,6 +41,18 @@ export default async function KategoriDuzenleSayfasi({
 
   const altAdedi = hepsi.filter((kategori) => kategori.ustKategoriId === kategoriId).length;
 
+  /* Stoktan gelen kategorinin tam yolu ("Beyaz Eşya › Buzdolapları"). */
+  let stoktanYol: string | undefined;
+  if (kayit.stokKategoriId) {
+    const adlar: string[] = [];
+    const ust = new Map(hepsi.map((k) => [k.id, k]));
+    for (let k: { ad: string; ustKategoriId: number | null } | undefined = kayit, n = 0; k && n < 32; n++) {
+      adlar.unshift(k.ad);
+      k = k.ustKategoriId ? ust.get(k.ustKategoriId) : undefined;
+    }
+    stoktanYol = adlar.join(" › ");
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <Link
@@ -75,6 +87,7 @@ export default async function KategoriDuzenleSayfasi({
 
       <KatalogFormu
         tur="kategori"
+        stoktanYol={stoktanYol}
         kayit={{
           id: kayit.id,
           ad: kayit.ad,

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
+  BookOpen,
   ExternalLink,
   Image as ImageIcon,
   Images,
@@ -32,6 +33,7 @@ const MENU = [
   { ad: "Kategoriler", yol: "/admin/kategoriler", simge: Tags },
   { ad: "Markalar", yol: "/admin/markalar", simge: Tags },
   { ad: "Afişler", yol: "/admin/afisler", simge: ImageIcon },
+  { ad: "Kataloglar", yol: "/admin/kataloglar", simge: BookOpen },
   { ad: "Galeri", yol: "/admin/galeri", simge: Images },
   { ad: "Banka Hesapları", yol: "/admin/banka", simge: Landmark },
   { ad: "Site Ayarları", yol: "/admin/ayarlar", simge: Settings },

@@ -54,3 +54,6 @@ dev.log
 
 # sohbet kayitlari - yerelde kalir, git gecmisini sismesin
 sohbet-gecmisi/
+
+# Geliştirmede (Cloudinary yokken) yönetim panelinden yüklenen dosyalar
+public/yuklenenler/

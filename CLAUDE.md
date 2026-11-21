@@ -75,7 +75,11 @@ oturum önce onu okumalı.
 
 ## Stok Yönetimi bağlantısı
 
-`lib/stok/` — `istemci.ts` (API: `/api/v1/products`, `/products/{barkod}` → `{data}`, `/ping`),
+Stok sisteminin adı artık **Selstok** (repolar `OverfitSoft/smart-store-*`, panel
+https://selstok.vercel.app; eski `stok-yonetimi-steel.vercel.app` adresi yönlendirir).
+
+`lib/stok/` — `istemci.ts` (API: `/api/v1/products`, `/products/{barkod}` → `{data}`,
+`/categories`, `/ping`),
 `esitle.ts` (eşitleme kuralları), `imza.ts` (webhook imzası). Admin ekranı `/admin/stok`
 ("Stok Bağlantısı"), ürün düzenleme sayfasında "Stok sisteminden" kutusu.
 
@@ -83,17 +87,45 @@ oturum önce onu okumalı.
   bağlanır; o da yoksa yeni ürün açılır — `stok_entegrasyonu.yeni_urunleri_yayinla` kapalıyken
   **gizli** gelir, yönetici seçip yayınlar.
 - Stok sistemi yalnızca stok miktarını, liste fiyatını ve ürün bazında açıksa fiyatı
-  (`fiyat_stoktan`) ve stok durumunu (`stok_durumu_stoktan`; "siparişe bağlı" korunur) yazar.
-  Ad, açıklama, fotoğraf, kategori, marka, öne çıkarma, yayın sitenin yöneticisinindir.
-- Stokta silinen / web sitesinden kaldırılan ürün `stok_kaldirildi = true` ve gizli olur.
+  (`fiyat_stoktan`) ve stok durumunu (`stok_durumu_stoktan`; "siparişe bağlı" korunur) ve
+  **kategoriyi** yazar. Ad, açıklama, fotoğraf, marka, öne çıkarma, yayın sitenin yöneticisinindir.
+- Stokta silinen / web sitesinden kaldırılan ürün `stok_kaldirildi = true` ve gizli olur; önceki
+  yayın durumu `stok_onceki_aktif`'te saklanır, ürün geri gelince ona döner (ör. kategorisi
+  stokta yeniden sitede gösterilince).
+- **Kategoriler (2026-11-22, kullanıcının isteği):** sitenin kategori ağacı stok sisteminden gelir
+  (`GET /api/v1/categories`; Selstok'ta tek ortak ağaç, kategori başına "sitede görünsün"
+  anahtarı, Selstok panelinde Web sitesi entegrasyonu → Sitedeki kategoriler). Her eşitleme önce
+  ağacı yazar (`kategorileriYaz`): `kategoriler.stok_kategori_id` ile eşler; ad, üst kategori, sıra
+  (listedeki yer) ve yayın oradan; görsel, açıklama, adres, ana sayfa, SEO sitenin. Elle açılmış
+  kategoriler silinir (ürünleri kategorisiz kalır); stoktan gelip listeden çıkan kategori pasife
+  alınır, geri gelince aynı kayıt açılır. Bağlantı kuruluyken admin'de yeni kategori açılmaz,
+  stoktan gelen kategori silinmez; ad/üst/sıra/yayın formda salt okunur (sunucu da yok sayar).
+  Stoktan gelen ürünün kategori seçimi kilitli. Ağaç her derinlikte olabilir: "kategori ve
+  altları" ve ürün sayımları özyinelemeli. Webhook `category.updated` → kategoriler + `since`
+  ile ürünler (`esitle()`).
 - Anlık güncelleme: `POST /api/stok/webhook` (imza `X-Stok-Signature: v1=HMAC(sır, "ts.gövde")`,
   5 dk pencere), ürünü kaynaktan yeniden okur. Güvenlik ağı: `GET /api/stok/esitle` her gece
-  (`vercel.json` cron, `Bearer CRON_SECRET`) ve paneldeki "Şimdi eşitle".
+  (`vercel.json` cron, `Bearer CRON_SECRET`) ve paneldeki "Şimdi eşitle". "Şimdi eşitle" yalnız
+  son eşitlemeden beri stokta değişenleri çeker; sitede silinen bir ürün yalnız "Tümünü yeniden
+  oku" ile geri gelir.
 - Ortam değişkenleri (repo herkese açık — değerler yalnız `.env.local` ve Vercel'de):
-  `STOK_API_URL` (Stok Yönetimi paneli, şu an `https://stok-yonetimi-steel.vercel.app`),
+  `STOK_API_URL` (Selstok paneli: `https://selstok.vercel.app`; yerelde hâlâ eski adres var, o da çalışır),
   `STOK_API_KEY` (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı, firmanın sahibi
   oluşturur), `STOK_WEBHOOK_SECRET` (aynı ekranda webhook eklenince verilen sır; webhook adresi
   `https://<site>/api/stok/webhook`), `CRON_SECRET`.
+
+## Kataloglar
+
+`/kataloglar` (vitrin, menüde ve alt bilgide): markaların PDF katalogları ve online katalog
+bağlantıları, `grup`'a göre başlıklar altında kartlar (bugünkü boztepeas.com'daki Ürünlerimiz →
+Mobilya / Vestel sayfalarının yerine). Admin `/admin/kataloglar` (liste, yeni, düzenle; kapak
+görseli `TekilGorsel`). Tablo `kataloglar` (`tur`: `pdf` | `baglanti`, `baglanti` = PDF'in ya da
+sayfanın adresi, `dosya_kimligi` yüklenen PDF'in depo kimliği). PDF sunucu eyleminden geçmez
+(eylemler 1 MB, Vercel ~4.5 MB sınırı): Cloudinary varsa tarayıcı `katalogPdfImzasi()` ile imza
+alıp doğrudan `raw/upload` yapar (kimlik `raw:boztepe/kataloglar/…`); yoksa (geliştirme)
+`POST /api/admin/katalog-pdf` dosyayı `public/yuklenenler/kataloglar/`'a yazar (gitignore'da).
+Cloudinary ücretsiz pakette `raw` dosya başına 10 MB ve PDF teslimi hesap ayarlarında açık
+olmalı (Settings → Security → "Allow delivery of PDF and ZIP files").
 
 ## Bekleyen işler
 

@@ -147,3 +147,62 @@ export async function gorselSil(kimlik: string | null | undefined): Promise<void
     /* Yoksay. */
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* PDF katalogları                                                     */
+/* ------------------------------------------------------------------ */
+
+/** Yerelde (geliştirme) yüklenebilecek en büyük PDF. */
+export const PDF_AZAMI_BOYUT = 50 * 1024 * 1024; // 50 MB
+
+export function pdfDenetle(dosya: File) {
+  const pdfMi = dosya.type === "application/pdf" || dosya.name.toLowerCase().endsWith(".pdf");
+  if (!pdfMi) throw new GorselHatasi("Yalnızca PDF dosyası yükleyebilirsiniz.");
+  if (dosya.size === 0) throw new GorselHatasi("Dosya boş görünüyor.");
+  if (dosya.size > PDF_AZAMI_BOYUT) throw new GorselHatasi("PDF en fazla 50 MB olabilir.");
+}
+
+/**
+ * Cloudinary'ye tarayıcıdan doğrudan yükleme için imza. PDF'ler büyük olabildiği
+ * için sunucudan geçirilmez (Vercel fonksiyonları ~4.5 MB'tan büyük isteği
+ * almaz); sunucu yalnızca imzayı verir. Dosya `raw` türünde, katalog klasörüne
+ * gider. Cloudinary yoksa null: geliştirmede sunucu üstünden yerel yükleme.
+ */
+export function pdfYuklemeImzasi(): { bulut: string; anahtar: string; zaman: string; klasor: string; imza: string } | null {
+  if (!cloudinaryHazir) return null;
+  const zaman = Math.floor(Date.now() / 1000).toString();
+  const klasor = "boztepe/kataloglar";
+  return { bulut: cloudinaryAdi!, anahtar: cloudinaryAnahtar!, zaman, klasor, imza: imzala({ folder: klasor, timestamp: zaman }) };
+}
+
+/** Geliştirme: PDF'i public/yuklenenler/kataloglar altına yazar. */
+export async function pdfYerelYukle(dosya: File): Promise<YuklenenGorsel> {
+  pdfDenetle(dosya);
+  return yerelYukle(new File([dosya], "katalog.pdf", { type: "application/pdf" }), "kataloglar");
+}
+
+/** Cloudinary'den gelen bir PDF kimliğini depo kimliği biçimine çevirir ("raw:" öneki silmek için gerekir). */
+export function bulutPdfKimligi(publicId: string): string {
+  return `raw:${publicId}`;
+}
+
+/** Yüklenmiş PDF'i siler; hata kullanıcıya yansıtılmaz. */
+export async function pdfSil(kimlik: string | null | undefined): Promise<void> {
+  if (!kimlik) return;
+  try {
+    if (kimlik.startsWith("yerel:")) {
+      await yerelSil(kimlik);
+    } else if (kimlik.startsWith("raw:") && cloudinaryHazir) {
+      const publicId = kimlik.slice(4);
+      const zaman = Math.floor(Date.now() / 1000).toString();
+      const govde = new FormData();
+      govde.append("public_id", publicId);
+      govde.append("api_key", cloudinaryAnahtar!);
+      govde.append("timestamp", zaman);
+      govde.append("signature", imzala({ public_id: publicId, timestamp: zaman }));
+      await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryAdi}/raw/destroy`, { method: "POST", body: govde });
+    }
+  } catch {
+    /* Yoksay. */
+  }
+}

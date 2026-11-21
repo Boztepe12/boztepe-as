@@ -5,6 +5,23 @@ Yeni bir oturum bu dosyayı ve `CLAUDE.md`'yi okuyarak devam edebilir.
 
 ---
 
+## 🗂️ Kategoriler Selstok'tan, Kataloglar (22 Kasım 2026)
+
+- **Kategoriler:** sitenin kategori ağacı artık Selstok'tan geliyor (ayrıntı `CLAUDE.md` →
+  "Stok Yönetimi bağlantısı"). Migrasyon `0002_stok_kategorileri` (`kategoriler.stok_kategori_id`,
+  `urunler.stok_onceki_aktif`). Selstok tarafı (`/api/v1/categories`, `categoryId`,
+  `category.updated`, Sitedeki kategoriler ekranı) `OverfitSoft/smart-store-admin-panel` PR #20'de;
+  Selstok'un Supabase şeması uygulanıp panel yayınlanana kadar gerçek bağlantıda kategoriler gelmez:
+  `/categories` 404 dönünce kategori adımı atlanır, ürünler eskisi gibi eşitlenir.
+- **Kataloglar:** `/kataloglar` + admin `/admin/kataloglar`, migrasyon `0003_kataloglar`.
+- Denendi (yerelde, Selstok API'sini taklit eden bir test sunucusuyla): 3 seviyeli ağaç geldi,
+  eski 20 kategori kalktı; "Beyaz Eşya" sayfası alt dallardaki ürünleri de listeliyor; kategori
+  gizlenince menüden ve ürünleri vitrinden kalktı, açılınca aynı kayıt ve ürünler önceki yayın
+  durumuyla döndü. Katalog: PDF yükleme (yerel) ve web bağlantısı eklendi, hatalı form uyarı verdi,
+  vitrinde gruplu kartlar ve PDF yeni sekmede açıldı. `tsc`, `eslint`, `npm run build` temiz.
+
+---
+
 ## 🔗 Stok Yönetimi bağlantısı (9 Ekim 2026)
 
 Ürünler, fiyatlar ve stok artık Boztepe'nin stok sisteminden (Stok Yönetimi) çekilebiliyor;

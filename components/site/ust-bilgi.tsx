@@ -14,6 +14,7 @@ import { cn, telefonBicimle, whatsappBaglantisi } from "@/lib/utils";
 const SABIT_BAGLANTILAR = [
   { ad: "Tüm Ürünler", yol: "/urunler" },
   { ad: "Kampanyalar", yol: "/kampanyalar" },
+  { ad: "Kataloglar", yol: "/kataloglar" },
   { ad: "Hakkımızda", yol: "/hakkimizda" },
   { ad: "Galeri", yol: "/galeri" },
   { ad: "İletişim", yol: "/iletisim" },

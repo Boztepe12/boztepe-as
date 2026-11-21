@@ -68,12 +68,19 @@ async function kategoriVeAltlari(slug: string): Promise<number[]> {
 
   if (kategori.length === 0) return [];
 
-  const altlar = await db
-    .select({ id: kategoriler.id })
-    .from(kategoriler)
-    .where(eq(kategoriler.ustKategoriId, kategori[0].id));
-
-  return [kategori[0].id, ...altlar.map((k) => k.id)];
+  /* Ağaç stok sisteminden istenen derinlikte gelebilir: bütün alt dalları topla. */
+  const hepsi = await db.select({ id: kategoriler.id, ust: kategoriler.ustKategoriId }).from(kategoriler);
+  const kimlikler = new Set([kategori[0].id]);
+  for (let degisti = true; degisti; ) {
+    degisti = false;
+    for (const k of hepsi) {
+      if (k.ust !== null && kimlikler.has(k.ust) && !kimlikler.has(k.id)) {
+        kimlikler.add(k.id);
+        degisti = true;
+      }
+    }
+  }
+  return [...kimlikler];
 }
 
 function siralamaIfadesi(siralama: Siralama = "onerilen"): SQL[] {

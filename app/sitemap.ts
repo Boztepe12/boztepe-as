@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${TEMEL}/markalar`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${TEMEL}/hakkimizda`, changeFrequency: "yearly", priority: 0.5 },
     { url: `${TEMEL}/galeri`, changeFrequency: "monthly", priority: 0.4 },
+    { url: `${TEMEL}/kataloglar`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${TEMEL}/iletisim`, changeFrequency: "yearly", priority: 0.7 },
   ];
 

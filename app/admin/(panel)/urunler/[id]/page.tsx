@@ -82,6 +82,7 @@ export default async function UrunDuzenleSayfasi({
           deger: ozellik.deger,
         }))}
         secenekler={secenekler}
+        kategoriStoktan={Boolean(kayit.urun.stokBarkod)}
       />
     </div>
   );

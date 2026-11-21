@@ -127,10 +127,13 @@ export function UrunFormu({
   urun,
   ozellikler: baslangicOzellikleri = [],
   secenekler,
+  kategoriStoktan = false,
 }: {
   urun?: FormUrunu;
   ozellikler?: FormOzelligi[];
   secenekler: FormSecenekleri;
+  /** Ürün stok sisteminden geliyor: kategorisi orada değişir, burada değil. */
+  kategoriStoktan?: boolean;
 }) {
   const router = useRouter();
   const [deger, setDeger] = useState<FormDegeri>(() => baslangicDegeri(urun));
@@ -217,10 +220,18 @@ export function UrunFormu({
           </Alan>
 
           <AlanIzgarasi>
-            <Alan etiket="Kategori" ipucu="Ürünün sitede hangi menüde görüneceğini belirler.">
+            <Alan
+              etiket="Kategori"
+              ipucu={
+                kategoriStoktan
+                  ? "Stok sisteminden gelir: Selstok panelinde Web sitesi entegrasyonu → Sitedeki kategoriler'den taşıyın."
+                  : "Ürünün sitede hangi menüde görüneceğini belirler."
+              }
+            >
               <Secim
                 value={deger.kategoriId}
                 onChange={(olay) => guncelle("kategoriId", olay.target.value)}
+                disabled={kategoriStoktan}
               >
                 <option value="">Seçilmedi</option>
                 {secenekler.kategoriler.map((kategori) => (

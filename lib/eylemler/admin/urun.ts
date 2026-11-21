@@ -153,6 +153,16 @@ export async function urunKaydet(girdi: unknown): Promise<EylemSonucu> {
     };
   }
 
+  /* Stoktan gelen ürünün kategorisi stok sistemindedir; formdan gelen değer yok sayılır. */
+  if (v.id) {
+    const bagli = await db
+      .select({ stokBarkod: urunler.stokBarkod, kategoriId: urunler.kategoriId })
+      .from(urunler)
+      .where(eq(urunler.id, v.id))
+      .limit(1);
+    if (bagli[0]?.stokBarkod) v.kategoriId = bagli[0].kategoriId;
+  }
+
   const slug = await benzersizSlug(v.slug ?? v.ad, v.id);
   const aramaMetni = await aramaMetniUret(
     v.ad,

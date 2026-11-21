@@ -76,10 +76,12 @@ export async function kategoriAgaci(): Promise<KategoriDugumu[]> {
     }
   }
 
-  /* Ana kategorinin ürün adedi, alt kategorilerinin toplamını da içermeli. */
-  for (const kok of kokler) {
-    kok.urunAdedi += kok.altKategoriler.reduce((toplam, alt) => toplam + alt.urunAdedi, 0);
-  }
+  /* Bir kategorinin ürün adedi, bütün alt dallarının toplamını da içermeli (ağaç her derinlikte olabilir). */
+  const topla = (d: KategoriDugumu): number => {
+    for (const alt of d.altKategoriler) d.urunAdedi += topla(alt);
+    return d.urunAdedi;
+  };
+  for (const kok of kokler) topla(kok);
 
   return kokler;
 }
