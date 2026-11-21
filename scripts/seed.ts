@@ -754,8 +754,10 @@ async function tohumla() {
     await db.insert(schema.afisler).values({
       baslik: afis.baslik,
       altBaslik: afis.altBaslik,
-      gorselUrl: yerTutucu(afis.baslik, afis.ton),
-      mobilGorselUrl: yerTutucu(afis.baslik, afis.ton),
+      // Afiş başlığı zaten görselin üstüne yazılıyor; yazılı yer tutucu görsel aynı metni ikinci kez
+      // gösteriyordu. Görsel yüklenene kadar kaydırıcı marka renklerinde koyu bir zemin çizer.
+      gorselUrl: null,
+      mobilGorselUrl: null,
       baglanti: afis.baglanti,
       butonMetni: afis.butonMetni,
       sira: afisSira++,

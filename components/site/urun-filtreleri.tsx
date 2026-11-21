@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 
 import { Buton } from "@/components/ui/buton";
+import type { KategoriDugumu } from "@/lib/sorgular/kategoriler";
 import { cn, fiyatBicimle } from "@/lib/utils";
 
 export type MarkaSecenegi = { ad: string; slug: string; adet: number };
@@ -17,14 +19,50 @@ export const SIRALAMA_SECENEKLERI = [
   { deger: "populer", etiket: "En çok bakılanlar" },
 ] as const;
 
+/** Kategori ağacı (her derinlikte): açık kategorinin yolu açık gelir, diğerlerinin altı kapalı. */
+function KategoriAgaci({ dugumler, aktif, derinlik = 0 }: { dugumler: KategoriDugumu[]; aktif: string | null; derinlik?: number }) {
+  const icerir = (d: KategoriDugumu): boolean => d.slug === aktif || d.altKategoriler.some(icerir);
+  return (
+    <ul className={cn("space-y-0.5", derinlik > 0 && "ml-3 border-l border-cizgi pl-2")}>
+      {dugumler.map((d) => {
+        const acik = d.slug === aktif;
+        return (
+          <li key={d.id}>
+            <Link
+              href={`/kategori/${d.slug}`}
+              aria-current={acik ? "page" : undefined}
+              className={cn(
+                "flex items-center justify-between gap-2 rounded-yumusak px-2.5 py-1.5 text-sm transition-colors",
+                acik ? "bg-kiremit-acik font-medium text-kiremit" : "text-murekkep hover:bg-kum-koyu hover:text-kiremit",
+              )}
+            >
+              <span className="truncate">{d.ad}</span>
+              <span className="rakam shrink-0 text-xs text-solgun">{d.urunAdedi}</span>
+            </Link>
+            {d.altKategoriler.length > 0 && icerir(d) && (
+              <KategoriAgaci dugumler={d.altKategoriler} aktif={aktif} derinlik={derinlik + 1} />
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function UrunFiltreleri({
   markalar,
   fiyatSiniri,
   toplam,
+  kategoriler = [],
+  aktifKategori = null,
 }: {
   markalar: MarkaSecenegi[];
   fiyatSiniri: { enDusuk: number; enYuksek: number };
   toplam: number;
+  /** Sol panelin en üstündeki kategori ağacı. */
+  kategoriler?: KategoriDugumu[];
+  /** Açık kategori sayfasının slug'ı; "Tüm ürünler"de null. */
+  aktifKategori?: string | null;
 }) {
   const router = useRouter();
   const yol = usePathname();
@@ -100,6 +138,26 @@ export function UrunFiltreleri({
             <X className="size-3.5" />
           </span>
         </button>
+      )}
+
+      {/* Kategoriler: ürünlerden sonra en çok aranan şey, en üstte ve tıklaması kolay. */}
+      {kategoriler.length > 0 && (
+        <nav aria-label="Kategoriler">
+          <p className="mb-2 text-sm font-semibold text-murekkep">Kategoriler</p>
+          <Link
+            href="/urunler"
+            aria-current={aktifKategori === null && yol === "/urunler" ? "page" : undefined}
+            className={cn(
+              "mb-0.5 block rounded-yumusak px-2.5 py-1.5 text-sm transition-colors",
+              aktifKategori === null && yol === "/urunler"
+                ? "bg-kiremit-acik font-medium text-kiremit"
+                : "text-murekkep hover:bg-kum-koyu hover:text-kiremit",
+            )}
+          >
+            Tüm ürünler
+          </Link>
+          <KategoriAgaci dugumler={kategoriler} aktif={aktifKategori} />
+        </nav>
       )}
 
       {/* Hızlı seçimler */}

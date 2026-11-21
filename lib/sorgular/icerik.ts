@@ -1,6 +1,7 @@
 import { and, asc, eq, gte, isNull, lte, or, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
+import { ibanGecerliMi } from "@/lib/utils";
 import {
   kataloglar,
   afisler,
@@ -189,12 +190,14 @@ export async function galeri() {
     .orderBy(asc(galeriGorselleri.sira), asc(galeriGorselleri.id));
 }
 
+/** Sitede gösterilecek hesaplar: aktif ve IBAN'ı geçerli olanlar (deneme ya da hatalı IBAN gösterilmez). */
 export async function aktifBankaHesaplari() {
-  return db
+  const hesaplar = await db
     .select()
     .from(bankaHesaplari)
     .where(eq(bankaHesaplari.aktif, true))
     .orderBy(asc(bankaHesaplari.sira), asc(bankaHesaplari.id));
+  return hesaplar.filter((h) => ibanGecerliMi(h.iban));
 }
 
 export type KatalogGrubu = {

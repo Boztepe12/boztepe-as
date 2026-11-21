@@ -3,6 +3,7 @@ import { PackageSearch } from "lucide-react";
 
 import { Sayfalama } from "@/components/site/sayfalama";
 import { SiralamaSecici, UrunFiltreleri } from "@/components/site/urun-filtreleri";
+import { kategoriAgaci } from "@/lib/sorgular/kategoriler";
 import { UrunIzgarasi, UrunKarti } from "@/components/site/urun-karti";
 import { ButonBaglanti } from "@/components/ui/buton";
 import { BosDurum } from "@/components/ui/durum";
@@ -73,7 +74,7 @@ export async function UrunListeleme({
    */
   const markaFiltresi = markaSlug ? [markaSlug] : filtre.markaSluglari;
 
-  const [sonuc, markalar, fiyatSiniri] = await Promise.all([
+  const [sonuc, markalar, fiyatSiniri, kategoriler] = await Promise.all([
     urunleriListele({
       kategoriSlug,
       markaSluglari: markaFiltresi,
@@ -88,6 +89,7 @@ export async function UrunListeleme({
     }),
     markaSlug ? Promise.resolve([]) : kategorininMarkalari(kategoriSlug),
     fiyatAraligi(kategoriSlug),
+    kategoriAgaci(),
   ]);
 
   return (
@@ -101,7 +103,13 @@ export async function UrunListeleme({
 
       <div className="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-10">
         <Suspense fallback={<div className="h-10" />}>
-          <UrunFiltreleri markalar={markalar} fiyatSiniri={fiyatSiniri} toplam={sonuc.toplam} />
+          <UrunFiltreleri
+            markalar={markalar}
+            fiyatSiniri={fiyatSiniri}
+            toplam={sonuc.toplam}
+            kategoriler={kategoriler}
+            aktifKategori={kategoriSlug ?? null}
+          />
         </Suspense>
 
         <div className="min-w-0">

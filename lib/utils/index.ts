@@ -142,6 +142,23 @@ export function kisalt(metin: string, uzunluk: number): string {
 }
 
 /** IBAN'ı 4'erli gruplar hâlinde okunur yazar. */
+/**
+ * IBAN'ın kontrol rakamları doğru mu (ISO 13616, mod 97). Türk IBAN'ı: "TR" + 24
+ * rakam. Yanlış yazılmış ya da deneme amaçlı (TR00 …) bir IBAN'a müşteri havale
+ * yapmasın diye sitede yalnız geçerli olanlar gösterilir.
+ */
+export function ibanGecerliMi(iban: string): boolean {
+  const temiz = iban.replace(/\s/g, "").toUpperCase();
+  if (!/^TR\d{24}$/.test(temiz)) return false;
+  const yeniden = temiz.slice(4) + temiz.slice(0, 4);
+  let kalan = 0;
+  for (const harf of yeniden) {
+    const deger = /\d/.test(harf) ? harf : String(harf.charCodeAt(0) - 55);
+    for (const rakam of deger) kalan = (kalan * 10 + Number(rakam)) % 97;
+  }
+  return kalan === 1;
+}
+
 export function ibanBicimle(iban: string): string {
   const temiz = iban.replace(/\s/g, "").toUpperCase();
   return temiz.replace(/(.{4})/g, "$1 ").trim();

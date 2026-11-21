@@ -9,7 +9,7 @@ import { Panel } from "@/components/admin/panel-parcalari";
 import { Buton } from "@/components/ui/buton";
 import { Alan, AlanIzgarasi, Girdi, Onay } from "@/components/ui/form";
 import { bankaHesabiKaydet, bankaHesabiSil } from "@/lib/eylemler/admin/icerik";
-import { cn, ibanBicimle } from "@/lib/utils";
+import { cn, ibanBicimle, ibanGecerliMi } from "@/lib/utils";
 
 export type BankaKaydi = {
   id: number;
@@ -244,6 +244,11 @@ export function BankaListesi({
                   <p className="rakam mt-0.5 text-sm text-murekkep-yumusak">
                     {ibanBicimle(hesap.iban)}
                   </p>
+                  {!ibanGecerliMi(hesap.iban) && (
+                    <p className="mt-0.5 text-xs font-medium text-hata">
+                      IBAN geçersiz (kontrol rakamları tutmuyor) — sitede gösterilmiyor.
+                    </p>
+                  )}
                   <p className="text-xs text-solgun">{hesap.hesapSahibi}</p>
                 </div>
 

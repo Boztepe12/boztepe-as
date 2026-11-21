@@ -8,6 +8,7 @@ import { eylemIcinOturum } from "@/lib/auth/koruma";
 import { db } from "@/lib/db";
 import { afisler, bankaHesaplari, galeriGorselleri } from "@/lib/db/schema";
 import { gorselSil, gorselYukle } from "@/lib/storage";
+import { ibanGecerliMi } from "@/lib/utils";
 
 import type { EylemSonucu } from "./urun";
 
@@ -338,7 +339,8 @@ const IbanSemasi = z
   .string()
   .trim()
   .transform((deger) => deger.replace(/\s/g, "").toUpperCase())
-  .refine((deger) => /^TR\d{24}$/.test(deger), "IBAN 'TR' ile başlamalı ve 26 karakter olmalı.");
+  .refine((deger) => /^TR\d{24}$/.test(deger), "IBAN 'TR' ile başlamalı ve 26 karakter olmalı.")
+  .refine((deger) => ibanGecerliMi(deger), "IBAN'ın kontrol rakamları tutmuyor; yanlış yazılmış olabilir.");
 
 const BankaSemasi = z.object({
   id: z.number().int().positive().optional(),

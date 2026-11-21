@@ -47,6 +47,10 @@ export function AfisKaydiragi({ afisler }: { afisler: Afis[] }) {
           {afisler.map((afis, indeks) => (
             <div key={afis.id} className="relative min-w-0 flex-[0_0_100%]">
               <div className="relative aspect-[4/5] w-full sm:aspect-[16/9] lg:aspect-[21/9]">
+                {/* Görsel yokken (henüz yüklenmemiş) marka renklerinde koyu bir zemin: yazı okunur kalsın. */}
+                {!afis.gorselUrl && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-murekkep via-murekkep to-kiremit-koyu" />
+                )}
                 {afis.gorselUrl && (
                   <Image
                     src={afis.gorselUrl}
