@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
@@ -23,7 +24,33 @@ const TalepSemasi = z.object({
   eposta: z.union([z.string().trim().email("Geçerli bir e-posta yazın."), z.literal("")]).optional(),
   mesaj: z.string().trim().max(2000).optional(),
   kalemler: z.array(KalemSemasi).min(1, "Teklif sepetiniz boş.").max(50),
+  /** Görünmez tuzak alan: doluysa gönderen bir bottur. */
+  web: z.string().max(500).optional(),
 });
+
+/*
+ * Basit hız sınırı: aynı IP'den 10 dakikada en fazla 5 talep. Bellek içi; Vercel'de
+ * her sunucu örneğinin kendi sayacı olur, yani tam bir koruma değil — talep listesinin
+ * bir betikle doldurulmasını yavaşlatır. Tuzak alanla birlikte çoğu spam'i keser.
+ */
+const PENCERE_MS = 10 * 60 * 1000;
+const AZAMI_TALEP = 5;
+const gonderimler = new Map<string, number[]>();
+
+async function hizSiniriAsildi(): Promise<boolean> {
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for")?.split(",")[0] ?? h.get("x-real-ip") ?? "yerel").trim();
+  const simdi = Date.now();
+  const liste = (gonderimler.get(ip) ?? []).filter((t) => simdi - t < PENCERE_MS);
+  if (liste.length >= AZAMI_TALEP) {
+    gonderimler.set(ip, liste);
+    return true;
+  }
+  liste.push(simdi);
+  gonderimler.set(ip, liste);
+  if (gonderimler.size > 5000) gonderimler.clear(); // bellek sınırsız büyümesin
+  return false;
+}
 
 export type TalepSonucu =
   | { durum: "basarili"; kod: string }
@@ -66,6 +93,12 @@ export async function talepOlustur(girdi: unknown): Promise<TalepSonucu> {
   }
 
   const veri = cozum.data;
+
+  // Bot: başarılı gibi görünsün (denemeyi sürdürmesin), kayıt yazılmasın.
+  if (veri.web) return { durum: "basarili", kod: kodUret() };
+  if (await hizSiniriAsildi()) {
+    return { durum: "hata", mesaj: "Kısa sürede çok fazla talep gönderildi. Lütfen biraz sonra tekrar deneyin ya da bizi arayın." };
+  }
 
   /*
    * Fiyatı istemciden almıyoruz. Tarayıcıdaki sepet eskimiş ya da elle değiştirilmiş

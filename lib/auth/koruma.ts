@@ -58,5 +58,18 @@ export async function adminZorunlu(): Promise<OturumBilgisi> {
 export async function eylemIcinOturum(): Promise<OturumBilgisi> {
   const oturum = await mevcutOturum();
   if (!oturum) throw new Error("Oturumunuz sona ermiş. Lütfen tekrar giriş yapın.");
-  return oturum;
+  /*
+   * Sayfalardaki gibi hesabın hâlâ var ve aktif olduğuna veritabanından bak: jeton
+   * 7 gün geçerli; pasife alınan ya da silinen bir hesap o süre boyunca değişiklik
+   * yapamamalı. Rol de jetondan değil, güncel kayıttan.
+   */
+  const kayit = (
+    await db
+      .select({ aktif: yoneticiler.aktif, rol: yoneticiler.rol, adSoyad: yoneticiler.adSoyad })
+      .from(yoneticiler)
+      .where(eq(yoneticiler.id, oturum.id))
+      .limit(1)
+  )[0];
+  if (!kayit || !kayit.aktif) throw new Error("Bu hesap artık kullanılamıyor. Lütfen tekrar giriş yapın.");
+  return { ...oturum, rol: kayit.rol, adSoyad: kayit.adSoyad };
 }

@@ -163,3 +163,12 @@ export function ibanBicimle(iban: string): string {
   const temiz = iban.replace(/\s/g, "").toUpperCase();
   return temiz.replace(/(.{4})/g, "$1 ").trim();
 }
+
+/**
+ * <script type="application/ld+json"> içine yazılacak JSON. JSON.stringify "<"
+ * karakterini kaçırmaz; ürün adında "</script>" geçerse sayfaya kod sızabilir.
+ * "<", ">" ve "&" Unicode kaçışlarıyla yazılır (JSON olarak aynı değer).
+ */
+export function jsonLd(veri: unknown): string {
+  return JSON.stringify(veri).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/&/g, "\\u0026");
+}

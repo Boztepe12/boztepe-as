@@ -17,7 +17,7 @@ import {
   goruntulenmeArtir,
   urunGetir,
 } from "@/lib/sorgular/urunler";
-import { fiyatBicimle, indirimYuzdesi, taksitMetni, whatsappBaglantisi } from "@/lib/utils";
+import { fiyatBicimle, indirimYuzdesi, taksitMetni, whatsappBaglantisi, jsonLd } from "@/lib/utils";
 
 export const revalidate = 3600;
 
@@ -105,7 +105,7 @@ export default async function UrunSayfasi({ params }: { params: Promise<{ slug: 
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(yapisalVeri) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(yapisalVeri) }}
       />
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">

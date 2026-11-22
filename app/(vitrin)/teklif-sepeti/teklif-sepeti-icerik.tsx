@@ -89,6 +89,7 @@ export function TeklifSepetiIcerik({ whatsappNumarasi }: { whatsappNumarasi: str
         telefon: String(veri.get("telefon") ?? ""),
         eposta: String(veri.get("eposta") ?? ""),
         mesaj: String(veri.get("mesaj") ?? ""),
+        web: String(veri.get("web") ?? ""),
         kalemler: kalemler.map((k) => ({ urunId: k.urunId, adet: k.adet })),
       });
 
@@ -239,6 +240,13 @@ export function TeklifSepetiIcerik({ whatsappNumarasi }: { whatsappNumarasi: str
 
           <Alan etiket="Notunuz" ipucu="Renk, ölçü, teslimat zamanı gibi tercihleriniz">
             <MetinKutusu name="mesaj" rows={3} placeholder="Eklemek istedikleriniz…" />
+            {/* Otomatik form dolduran botlar için tuzak: insanlar görmez, doldurmaz. */}
+            <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+              <label>
+                Web sitesi
+                <input type="text" name="web" tabIndex={-1} autoComplete="off" defaultValue="" />
+              </label>
+            </div>
           </Alan>
 
           <Buton type="submit" tamGenislik boyut="buyuk" disabled={gonderiliyor}>

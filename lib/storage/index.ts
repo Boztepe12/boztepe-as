@@ -96,8 +96,15 @@ async function cloudinarySil(kimlik: string): Promise<void> {
  * yönetim panelinin uçtan uca denenebilmesi.
  */
 async function yerelYukle(dosya: File, klasor: string): Promise<YuklenenGorsel> {
-  const uzanti = dosya.name.includes(".") ? dosya.name.split(".").pop()!.toLowerCase() : "jpg";
-  const guvenliUzanti = /^[a-z0-9]{1,5}$/.test(uzanti) ? uzanti : "jpg";
+  /*
+   * Uzantı dosya adından değil, izin verilen türden gelir: "image/png" diye
+   * bildirilmiş bir "x.html" sitenin adresinden HTML olarak sunulamasın.
+   */
+  const TURDEN_UZANTI: Record<string, string> = {
+    "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif", "image/gif": "gif",
+    "application/pdf": "pdf",
+  };
+  const guvenliUzanti = TURDEN_UZANTI[dosya.type] ?? "bin";
   const dosyaAdi = `${randomUUID()}.${guvenliUzanti}`;
 
   const hedefKlasor = path.join(process.cwd(), "public", "yuklenenler", klasor);

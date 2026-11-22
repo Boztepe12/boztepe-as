@@ -5,7 +5,7 @@ import { EkmekKirintisi } from "@/components/site/ekmek-kirintisi";
 import { WhatsappSimgesi } from "@/components/site/marka-simgeleri";
 import { DisBaglanti } from "@/components/ui/buton";
 import { aktifBankaHesaplari, ayarGetir } from "@/lib/sorgular/icerik";
-import { ibanBicimle, telefonBicimle, whatsappBaglantisi } from "@/lib/utils";
+import { ibanBicimle, telefonBicimle, whatsappBaglantisi, jsonLd } from "@/lib/utils";
 
 import { IletisimFormu } from "./iletisim-formu";
 
@@ -37,7 +37,7 @@ export default async function IletisimSayfasi() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(yapisalVeri) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(yapisalVeri) }}
       />
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">

@@ -23,7 +23,12 @@ config({ quiet: true });
 
 const PGLITE_DIZINI = path.join(process.cwd(), ".pglite");
 const KILIT = path.join(PGLITE_DIZINI, "postmaster.pid");
-const DEV_PORTU = Number(process.env.PORT ?? 3000);
+/*
+ * Sunucu `next dev -p <port>` ile başka bir portta da çalışıyor olabilir (bu oturumlarda
+ * 3200); yalnız 3000'e bakmak, çalışan bir sunucunun kilitli veritabanını "bozuk" sanıp
+ * kenara almaya yol açtı (2026-11-22). Sık kullanılan portların hepsi yoklanır.
+ */
+const DEV_PORTLARI = [...new Set([Number(process.env.PORT ?? 3000), 3000, 3001, 3002, 3100, 3200, 3300])];
 
 const adres = process.env.DATABASE_URL?.trim();
 if (adres && /^postgres(ql)?:\/\//.test(adres)) {
@@ -35,7 +40,14 @@ if (adres && /^postgres(ql)?:\/\//.test(adres)) {
  * verir ve bu, bozulmayla birebir ayni gorunur. Ikisini karistirip calisan bir
  * sunucunun verisini silmemek icin once portu yokluyoruz.
  */
-function devSunucusuCalisiyorMu() {
+async function devSunucusuCalisiyorMu() {
+  for (const port of DEV_PORTLARI) {
+    if (await porttaSunucuVarMi(port)) return port;
+  }
+  return null;
+}
+
+function porttaSunucuVarMi(port) {
   /*
    * Porta baglanmayi deniyoruz, dinlemeyi degil. Windows'ta 0.0.0.0'a bagli bir
    * sunucu varken 127.0.0.1'e ayrica baglanmak basarili olabiliyor; o yuzden
@@ -53,7 +65,7 @@ function devSunucusuCalisiyorMu() {
     soket.once("connect", () => bitir(true));
     soket.once("timeout", () => bitir(false));
     soket.once("error", () => bitir(false));
-    soket.connect(DEV_PORTU, "127.0.0.1");
+    soket.connect(port, "127.0.0.1");
   });
 }
 
@@ -122,9 +134,10 @@ function kur(sebep, bozukDizinVar) {
 }
 
 async function calistir() {
-  if (await devSunucusuCalisiyorMu()) {
+  const calisanPort = await devSunucusuCalisiyorMu();
+  if (calisanPort) {
     console.log(
-      `[db] ${DEV_PORTU} portunda zaten bir sunucu var; veritabani kontrolu atlandi.`,
+      `[db] ${calisanPort} portunda zaten bir sunucu var; veritabani kontrolu atlandi.`,
     );
     return;
   }
