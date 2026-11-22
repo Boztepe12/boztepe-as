@@ -1,8 +1,3 @@
-import { config } from "dotenv";
-
-config({ path: ".env.local", quiet: true });
-config({ quiet: true });
-
 import { eq } from "drizzle-orm";
 
 import { sifreKurallariniDenetle, sifreOzetle } from "../lib/auth/sifre";
@@ -13,19 +8,22 @@ import { uzakAdres, uzakBetikBaglantisi } from "../lib/db/uzak";
  * Canlı veritabanında yönetici hesabı açar ya da şifresini yeniler — örnek veri
  * (tohum) olmadan. Canlı kurulumda: önce `npm run db:migrate`, sonra bu.
  *
- *   DATABASE_URL="<session pooler adresi>" YONETICI_EPOSTA=… YONETICI_SIFRE=… YONETICI_AD="Ad Soyad" npm run db:yonetici
+ *   DATABASE_URL="<session pooler adresi>" ADMIN_EMAIL=… ADMIN_PASSWORD=… ADMIN_NAME="Ad Soyad" npm run db:yonetici
+ *
+ * `.env.local` bilerek okunmaz: değerler yalnız komut satırından gelir, yereldeki
+ * deneme şifresi yanlışlıkla canlıya yazılmasın.
  *
  * Şifre sitenin kuralına uymalı (en az 10 karakter, harf ve rakam). Hesap "admin" rolüyle açılır.
  */
 async function calistir() {
   const adres = uzakAdres();
   if (!adres) throw new Error("DATABASE_URL tanımlı değil (canlı veritabanının adresi).");
-  const eposta = process.env.YONETICI_EPOSTA?.trim().toLowerCase();
-  const sifre = process.env.YONETICI_SIFRE ?? "";
-  const ad = process.env.YONETICI_AD?.trim() || "Yönetici";
-  if (!eposta || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(eposta)) throw new Error("YONETICI_EPOSTA geçerli bir e-posta olmalı.");
+  const eposta = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const sifre = process.env.ADMIN_PASSWORD ?? "";
+  const ad = process.env.ADMIN_NAME?.trim() || "Yönetici";
+  if (!eposta || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(eposta)) throw new Error("ADMIN_EMAIL geçerli bir e-posta olmalı.");
   const kural = sifreKurallariniDenetle(sifre);
-  if (kural) throw new Error(`YONETICI_SIFRE: ${kural}`);
+  if (kural) throw new Error(`ADMIN_PASSWORD: ${kural}`);
 
   const { db, kapat } = uzakBetikBaglantisi(adres, schema);
   try {

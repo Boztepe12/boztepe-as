@@ -11,7 +11,7 @@ import { imzaGecerli } from "@/lib/stok/imza";
 export async function POST(request: Request) {
   const govde = await request.text();
   if (govde.length > 64 * 1024) return new Response("too large", { status: 413 });
-  const sir = process.env.STOK_WEBHOOK_SECRET?.trim() ?? "";
+  const sir = process.env.SELSTOK_WEBHOOK_SECRET?.trim() ?? "";
   if (!imzaGecerli(sir, request.headers.get("x-stok-timestamp"), request.headers.get("x-stok-signature"), govde)) {
     return new Response("invalid signature", { status: 401 });
   }

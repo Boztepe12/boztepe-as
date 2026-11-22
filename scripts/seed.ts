@@ -794,8 +794,8 @@ async function tohumla() {
   console.log(`  ✓ ${Object.keys(AYARLAR).length} ayar kaydı`);
 
   /* --- Yönetici --- */
-  const eposta = process.env.ADMIN_EPOSTA ?? "admin@boztepeas.com";
-  const sifre = process.env.ADMIN_SIFRE ?? gecerliSifreUret();
+  const eposta = process.env.ADMIN_EMAIL ?? "admin@boztepeas.com";
+  const sifre = process.env.ADMIN_PASSWORD ?? gecerliSifreUret();
 
   await db.insert(schema.yoneticiler).values({
     eposta,

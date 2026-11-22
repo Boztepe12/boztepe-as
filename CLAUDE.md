@@ -110,9 +110,9 @@ https://selstok.vercel.app; eski `stok-yonetimi-steel.vercel.app` adresi yönlen
   son eşitlemeden beri stokta değişenleri çeker; sitede silinen bir ürün yalnız "Tümünü yeniden
   oku" ile geri gelir.
 - Ortam değişkenleri (repo herkese açık — değerler yalnız `.env.local` ve Vercel'de):
-  `STOK_API_URL` (Selstok paneli: `https://selstok.vercel.app`),
-  `STOK_API_KEY` (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı, firmanın sahibi
-  oluşturur), `STOK_WEBHOOK_SECRET` (aynı ekranda webhook eklenince verilen sır; webhook adresi
+  `SELSTOK_API_URL` (Selstok paneli: `https://selstok.vercel.app`),
+  `SELSTOK_API_KEY` (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı, firmanın sahibi
+  oluşturur), `SELSTOK_WEBHOOK_SECRET` (aynı ekranda webhook eklenince verilen sır; webhook adresi
   `https://<site>/api/stok/webhook`), `CRON_SECRET`.
 
 ## Kataloglar

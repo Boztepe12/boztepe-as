@@ -7,9 +7,9 @@ import "server-only";
  *
  * Ortam değişkenleri (repo herkese açık — değerler yalnızca .env.local ve
  * Vercel'de durur, koda ya da dokümana yazılmaz):
- *   STOK_API_URL         Stok Yönetimi panelinin adresi (ör. https://stok-yonetimi-steel.vercel.app)
- *   STOK_API_KEY         sk_… ile başlayan API anahtarı
- *   STOK_WEBHOOK_SECRET  webhook uç noktasının imza sırrı (whsec_…)
+ *   SELSTOK_API_URL         Stok Yönetimi panelinin adresi (ör. https://stok-yonetimi-steel.vercel.app)
+ *   SELSTOK_API_KEY         sk_… ile başlayan API anahtarı
+ *   SELSTOK_WEBHOOK_SECRET  webhook uç noktasının imza sırrı (whsec_…)
  */
 
 export type StokUrunu = {
@@ -50,13 +50,13 @@ export class StokApiHatasi extends Error {
 }
 
 export function stokBaglantisiVar(): boolean {
-  return Boolean(process.env.STOK_API_URL?.trim() && process.env.STOK_API_KEY?.trim());
+  return Boolean(process.env.SELSTOK_API_URL?.trim() && process.env.SELSTOK_API_KEY?.trim());
 }
 
 async function istek<T>(yol: string): Promise<T> {
-  const taban = process.env.STOK_API_URL?.trim().replace(/\/+$/, "");
-  const anahtar = process.env.STOK_API_KEY?.trim();
-  if (!taban || !anahtar) throw new StokApiHatasi("Stok Yönetimi bağlantısı ayarlanmamış (STOK_API_URL, STOK_API_KEY).", null);
+  const taban = process.env.SELSTOK_API_URL?.trim().replace(/\/+$/, "");
+  const anahtar = process.env.SELSTOK_API_KEY?.trim();
+  if (!taban || !anahtar) throw new StokApiHatasi("Stok Yönetimi bağlantısı ayarlanmamış (SELSTOK_API_URL, SELSTOK_API_KEY).", null);
   let yanit: Response;
   try {
     yanit = await fetch(`${taban}/api/v1${yol}`, {

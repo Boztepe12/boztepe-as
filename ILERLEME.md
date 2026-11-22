@@ -53,7 +53,7 @@ Denendi (yerel PGlite + Stok Yönetimi'nin dev projesi, demo firma): 10 ürün g
 seçilip yayınlandı ve vitrinde göründü; stok sisteminde fiyat değişince imzalı webhook ürünü
 anında güncelledi, sahte imza reddedildi; `npm run build`, `eslint`, `tsc` temiz.
 
-Yerelde denemek için `.env.local`'a `STOK_API_URL`, `STOK_API_KEY`, `STOK_WEBHOOK_SECRET`,
+Yerelde denemek için `.env.local`'a `SELSTOK_API_URL`, `SELSTOK_API_KEY`, `SELSTOK_WEBHOOK_SECRET`,
 `CRON_SECRET` girilir, `npm run db:migrate` çalıştırılır (dev sunucusu kapalıyken).
 
 Bilinen tuzak: Stok Yönetimi'nin tek ürün yanıtı `{data: {...}}` içinde gelir, liste yanıtı
@@ -98,12 +98,12 @@ Yayına alma hazırlığı. Sırasıyla:
 
 1. **Neon veritabanı**: ücretsiz proje açılıp `DATABASE_URL` alınacak, `.env.local` ve
    Vercel ortam değişkenlerine yazılacak, `npm run db:migrate` + `npm run db:seed`
-   çalıştırılacak. (Seed yönetici hesabını `.env.local` içindeki `ADMIN_EPOSTA` /
-   `ADMIN_SIFRE` değerlerinden kuruyor — canlıda güçlü bir şifre girilmeli.)
+   çalıştırılacak. (Seed yönetici hesabını `.env.local` içindeki `ADMIN_EMAIL` /
+   `ADMIN_PASSWORD` değerlerinden kuruyor — canlıda güçlü bir şifre girilmeli.)
 2. **Cloudinary**: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
    Anahtarlar yokken yüklenen görseller `public/yuklenenler` altına düşüyor ve Vercel'in
    dosya sistemi salt okunur olduğu için canlıda çalışmaz.
-3. **`OTURUM_GIZLI_ANAHTAR`**: canlı için en az 32 karakterlik yeni bir rastgele değer.
+3. **`SESSION_SECRET`**: canlı için en az 32 karakterlik yeni bir rastgele değer.
 4. **Vercel projesi**: repo bağlanacak, ortam değişkenleri girilecek, ilk deploy.
 5. **README'ye deploy notları** yazılacak (şu an yok).
 6. Kullanıcıdan gelen içerikler panele girilecek: logo, gerçek fotoğraflar, IBAN listesi,
@@ -191,7 +191,7 @@ Bunun için üç katmanlı koruma var:
 
 1. **`npm run dev` öncesi otomatik kontrol** (`scripts/db-kontrol.mjs`, `predev` olarak
    bağlı). Dizini yoklar; okunamıyorsa `.pglite-bozuk-<zaman>` adına taşıyıp sıfırdan
-   kurar. Yönetici bilgileri `.env.local` içindeki `ADMIN_EPOSTA` / `ADMIN_SIFRE`
+   kurar. Yönetici bilgileri `.env.local` içindeki `ADMIN_EMAIL` / `ADMIN_PASSWORD`
    değerlerinden geldiği için giriş bilgisi her onarımda aynı kalır.
 2. **Çalışan sunucu koruması.** Dizinin meşgul olması da tıpkı bozulma gibi `Aborted()`
    verdiği için kontrol, önce dev portuna bağlanmayı deneyip çalışan bir sunucu olup

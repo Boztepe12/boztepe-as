@@ -49,7 +49,7 @@ export default async function StokSayfasi({ searchParams }: { searchParams: Prom
             <div className="space-y-3 p-5 text-sm">
               {!stokBaglantisiVar() && (
                 <p className="rounded-md bg-uyari/10 p-3 text-uyari">
-                  Bağlantı ayarlanmamış. Sunucuda STOK_API_URL ve STOK_API_KEY tanımlanmalı (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı).
+                  Bağlantı ayarlanmamış. Sunucuda SELSTOK_API_URL ve SELSTOK_API_KEY tanımlanmalı (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı).
                 </p>
               )}
               <dl className="space-y-1.5">

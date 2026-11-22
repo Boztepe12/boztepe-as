@@ -23,10 +23,10 @@ let onbellektekiAnahtar: Uint8Array | null = null;
 function anahtar(): Uint8Array {
   if (onbellektekiAnahtar) return onbellektekiAnahtar;
 
-  const gizli = process.env.OTURUM_GIZLI_ANAHTAR;
+  const gizli = process.env.SESSION_SECRET;
   if (!gizli || gizli.length < 32) {
     throw new Error(
-      "OTURUM_GIZLI_ANAHTAR tanımlı değil veya 32 karakterden kısa. " +
+      "SESSION_SECRET tanımlı değil veya 32 karakterden kısa. " +
         "`.env.local` dosyasına en az 32 karakterlik rastgele bir değer ekleyin.",
     );
   }
