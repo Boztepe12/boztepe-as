@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 
@@ -206,11 +207,31 @@ export function AltBilgi({
       </div>
 
       <div className="border-t border-cizgi">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-solgun sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 pt-5 text-xs text-solgun sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>
-            © {yil} {iletisim.firmaAdi}. Tüm hakları saklıdır.
+            {/* Unvan "A.Ş." gibi noktayla bitiyorsa ikinci nokta konmaz. */}
+            © {yil} {iletisim.firmaAdi.replace(/\.$/, "")}. Tüm hakları saklıdır.
           </p>
           <p>Fiyatlar ve stok durumu değişiklik gösterebilir.</p>
+        </div>
+        {/* Geliştirici imzası: ortada, köşelerdeki yüzen düğmelerin altında kalmasın. */}
+        <div className="flex justify-center px-4 pb-6 pt-4">
+          <a
+            href="https://overfitsoft.com"
+            target="_blank"
+            rel="noopener"
+            className="group inline-flex items-center gap-2 rounded-yumusak px-2 py-1 text-xs text-solgun transition-colors hover:text-murekkep"
+            aria-label="Overfit Soft tarafından geliştirildi"
+          >
+            <Image
+              src="/marka/overfitsoft.png"
+              alt=""
+              width={454}
+              height={72}
+              className="h-4 w-auto opacity-90 transition-opacity group-hover:opacity-100"
+            />
+            <span>tarafından geliştirildi</span>
+          </a>
         </div>
       </div>
     </footer>
