@@ -264,7 +264,6 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
                     <Fiyat urun={urun} />
                   </div>
                   <StokRozeti durum={urun.stokDurumu} />
-                  <YayinRozeti aktif={urun.aktif} />
                 </div>
               </div>
             </div>
@@ -295,7 +294,6 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
               <th className="px-4 py-3 font-medium">Kategori / Marka</th>
               <th className="px-4 py-3 font-medium">Fiyat</th>
               <th className="px-4 py-3 font-medium">Stok</th>
-              <th className="px-4 py-3 font-medium">Durum</th>
               <th className="px-4 py-3 font-medium">Yayın</th>
               <th className="w-24 px-4 py-3 text-right font-medium">İşlem</th>
             </tr>
@@ -351,10 +349,6 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
                 </td>
 
                 <td className="px-4 py-3">
-                  <YayinRozeti aktif={urun.aktif} />
-                </td>
-
-                <td className="px-4 py-3">
                   <Anahtarlar urun={urun} />
                 </td>
 
@@ -369,15 +363,6 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
         </TabloSarmali>
       </div>
     </>
-  );
-}
-
-/** Ürünün sitede görünüp görünmediğini yazıyla söyler; anahtarın yanında okunması kolay. */
-function YayinRozeti({ aktif }: { aktif: boolean }) {
-  return (
-    <Rozet ton={aktif ? "stok" : "tukendi"} className="whitespace-nowrap">
-      {aktif ? "Yayında" : "Yayında değil"}
-    </Rozet>
   );
 }
 
