@@ -67,6 +67,12 @@ function kapanistaKapat(pglite: PGlite) {
 }
 
 function baglantiKur(): VeritabaniBaglantisi {
+  /* Vercel'de PGlite çalışmaz (dosya sistemi salt okunur): adres yoksa açıkça söyle. */
+  if (!neonKullaniliyor && process.env.VERCEL) {
+    throw new Error(
+      "DATABASE_URL tanımlı değil. Vercel → Settings → Environment Variables'a Supabase'in Transaction pooler adresini (Production) girin ve yeniden deploy edin.",
+    );
+  }
   if (neonKullaniliyor) {
     return uzakBaglanti(baglantiAdresi!, schema);
   }

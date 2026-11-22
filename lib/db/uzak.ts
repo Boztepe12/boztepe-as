@@ -20,7 +20,18 @@ import postgres from "postgres";
 
 export function uzakAdres(): string | null {
   const adres = process.env.DATABASE_URL?.trim();
-  return adres && /^postgres(ql)?:\/\//.test(adres) ? adres : null;
+  if (!adres) return null;
+  if (!/^postgres(ql)?:\/\//.test(adres)) {
+    throw new Error("DATABASE_URL postgres:// ya da postgresql:// ile başlamalı (Supabase → Connect → Transaction pooler).");
+  }
+  try {
+    new URL(adres);
+  } catch {
+    throw new Error(
+      "DATABASE_URL okunamadı. Şifrede @ # / ? % gibi bir karakter varsa adres bozulur: Supabase'de şifreyi yalnız harf ve rakamdan oluşacak şekilde yenileyin ya da bu karakterleri kodlayın (@ → %40).",
+    );
+  }
+  return adres;
 }
 
 export function neonMu(adres: string): boolean {
@@ -40,6 +51,8 @@ function pgIstemcisi(adres: string, betik = false) {
     ssl: yerel ? false : "require",
     // Betikler (migrasyon, tohum) bitince bağlantı kapansın; uygulamada boşta 20 sn sonra.
     idle_timeout: betik ? 1 : 20,
+    // Ulaşılamayan bir adres derlemeyi ve sayfayı dakikalarca asılı tutmasın: 10 sn'de hata ver.
+    connect_timeout: 10,
     onnotice: () => {},
   });
 }
