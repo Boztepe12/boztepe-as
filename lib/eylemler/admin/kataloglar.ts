@@ -7,7 +7,7 @@ import { z } from "zod";
 import { eylemIcinOturum } from "@/lib/auth/koruma";
 import { db } from "@/lib/db";
 import { kataloglar } from "@/lib/db/schema";
-import { bulutPdfKimligi, gorselSil, gorselYukle, pdfSil, pdfYuklemeImzasi } from "@/lib/storage";
+import { dosyaSil, gorselYukle, KATALOG_PDF_KIMLIGI, pdfYuklemeHazirla } from "@/lib/storage";
 
 import type { EylemSonucu } from "./urun";
 
@@ -16,9 +16,9 @@ import type { EylemSonucu } from "./urun";
  * bağlantılar; sitede /kataloglar'da gruplanmış kartlar olarak görünür.
  *
  * PDF büyük olabildiği için sunucu eyleminden geçmez: tarayıcı önce
- * katalogPdfImzasi() ile Cloudinary imzası alıp dosyayı doğrudan yükler (yerelde
- * /api/admin/katalog-pdf'e gönderir), sonra katalogKaydet() dosyanın adresini
- * ve depo kimliğini kaydeder.
+ * katalogPdfYuklemeHazirla() ile tek kullanımlık bir yükleme adresi alıp dosyayı
+ * doğrudan depoya (Supabase Storage) yükler — yerelde /api/admin/katalog-pdf'e
+ * gönderir —, sonra katalogKaydet() dosyanın adresini ve depo kimliğini kaydeder.
  */
 
 const bosaNull = (deger: unknown) => {
@@ -32,8 +32,6 @@ const siraAlani = z.preprocess(
   z.number().int(),
 );
 
-/** Yüklenmiş PDF'in kimliği yalnız bu iki biçimde olabilir: yerel katalog klasörü ya da buluttaki katalog klasörü. */
-const DOSYA_KIMLIGI = /^(yerel:kataloglar\/[0-9a-f-]+\.pdf|raw:boztepe\/kataloglar\/[\w./-]+)$/;
 
 const KatalogSemasi = z
   .object({
@@ -57,7 +55,7 @@ const KatalogSemasi = z
     } else {
       if (!v.dosyaKimligi || !v.baglanti) {
         ctx.addIssue({ code: "custom", path: ["dosya"], message: "Bir PDF dosyası seçin." });
-      } else if (!DOSYA_KIMLIGI.test(v.dosyaKimligi)) {
+      } else if (!KATALOG_PDF_KIMLIGI.test(v.dosyaKimligi)) {
         ctx.addIssue({ code: "custom", path: ["dosya"], message: "Dosya tanınmadı; yeniden yükleyin." });
       }
     }
@@ -78,16 +76,10 @@ function tazele(id?: number) {
   if (id) revalidatePath(`/admin/kataloglar/${id}`);
 }
 
-/** Tarayıcının PDF'i doğrudan Cloudinary'ye yüklemesi için imza; Cloudinary yoksa null (yerel yükleme). */
-export async function katalogPdfImzasi() {
+/** PDF yüklemesini hazırlar: canlıda doğrudan depoya yükleme adresi, yerelde { yerel: true }. */
+export async function katalogPdfYuklemeHazirla() {
   await eylemIcinOturum();
-  return pdfYuklemeImzasi();
-}
-
-/** Cloudinary'nin döndürdüğü public_id'yi kaydedilecek kimliğe çevirir. */
-export async function bulutPdfKimligiOlustur(publicId: string): Promise<string> {
-  await eylemIcinOturum();
-  return bulutPdfKimligi(publicId);
+  return pdfYuklemeHazirla();
 }
 
 export async function katalogKaydet(girdi: unknown): Promise<EylemSonucu> {
@@ -117,7 +109,7 @@ export async function katalogKaydet(girdi: unknown): Promise<EylemSonucu> {
     if (!eski) return { durum: "hata", mesaj: "Katalog bulunamadı." };
     await db.update(kataloglar).set(alanlar).where(eq(kataloglar.id, v.id));
     // PDF değiştiyse ya da bağlantıya çevrildiyse eski dosya depoda kalmasın.
-    if (eski.dosyaKimligi && eski.dosyaKimligi !== alanlar.dosyaKimligi) await pdfSil(eski.dosyaKimligi);
+    if (eski.dosyaKimligi && eski.dosyaKimligi !== alanlar.dosyaKimligi) await dosyaSil(eski.dosyaKimligi);
     tazele(v.id);
     return { durum: "basarili", mesaj: "Katalog güncellendi.", id: v.id };
   }
@@ -131,7 +123,7 @@ export async function katalogSil(id: number): Promise<EylemSonucu> {
   const kayit = (await db.select().from(kataloglar).where(eq(kataloglar.id, id)).limit(1))[0];
   if (!kayit) return { durum: "hata", mesaj: "Katalog bulunamadı." };
   await db.delete(kataloglar).where(eq(kataloglar.id, id));
-  await Promise.all([pdfSil(kayit.dosyaKimligi), gorselSil(kayit.kapakKimligi)]);
+  await Promise.all([dosyaSil(kayit.dosyaKimligi), dosyaSil(kayit.kapakKimligi)]);
   tazele();
   return { durum: "basarili", mesaj: "Katalog silindi." };
 }
@@ -154,7 +146,7 @@ export async function katalogKapagiYukle(id: number, veri: FormData): Promise<Ey
     const yuklenen = await gorselYukle(dosya, "kataloglar");
     await db.update(kataloglar).set({ kapakUrl: yuklenen.url, kapakKimligi: yuklenen.kimlik, guncellemeTarihi: new Date() })
       .where(eq(kataloglar.id, id));
-    await gorselSil(kayit.kapakKimligi);
+    await dosyaSil(kayit.kapakKimligi);
     tazele(id);
     return { durum: "basarili", mesaj: "Kapak görseli yüklendi." };
   } catch (hata) {
@@ -167,7 +159,7 @@ export async function katalogKapagiKaldir(id: number): Promise<EylemSonucu> {
   const kayit = (await db.select().from(kataloglar).where(eq(kataloglar.id, id)).limit(1))[0];
   if (!kayit) return { durum: "hata", mesaj: "Katalog bulunamadı." };
   await db.update(kataloglar).set({ kapakUrl: null, kapakKimligi: null, guncellemeTarihi: new Date() }).where(eq(kataloglar.id, id));
-  await gorselSil(kayit.kapakKimligi);
+  await dosyaSil(kayit.kapakKimligi);
   tazele(id);
   return { durum: "basarili", mesaj: "Kapak görseli kaldırıldı." };
 }

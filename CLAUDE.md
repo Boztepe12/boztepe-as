@@ -29,10 +29,10 @@ Kullanıcı maliyetin sıfır kalmasını istedi. Seçimler buna göre yapıldı
 | Stil | Tailwind CSS v4 |
 | Veritabanı | Neon Postgres (ücretsiz katman) |
 | ORM | Drizzle |
-| Lokal geliştirme DB | PGlite — harici hesap gerekmeden Postgres uyumlu |
+| Lokal geliştirme DB | Postgres.app (`localhost:5433`, veritabanı `boztepe-as-dev`, `.env.local`'daki `DATABASE_URL`); `DATABASE_URL` yoksa PGlite (kırılgan: iki süreç açarsa bozulur — sunucu çalışırken `npm install` yapmayın) |
 | Canlı DB | Supabase Postgres (proje `gfoukosahxsaiajjkksa`); kod Neon'u da destekler (`lib/db/uzak.ts`) |
 | Auth | Kendi oturum katmanımız: bcrypt + `jose` ile imzalı JWT, httpOnly cookie |
-| Görsel depolama | Cloudinary (ücretsiz 25 GB) |
+| Dosya deposu | Supabase Storage, herkese açık `site` kovası (görseller ve PDF kataloglar); yerelde `public/yuklenenler` |
 | Hosting | Vercel Hobby |
 
 **Supabase kullanılmayacak.** Nedeni: kullanıcının ücretsiz kotası olan 2 aktif proje
@@ -122,11 +122,20 @@ bağlantıları, `grup`'a göre başlıklar altında kartlar (bugünkü boztepea
 Mobilya / Vestel sayfalarının yerine). Admin `/admin/kataloglar` (liste, yeni, düzenle; kapak
 görseli `TekilGorsel`). Tablo `kataloglar` (`tur`: `pdf` | `baglanti`, `baglanti` = PDF'in ya da
 sayfanın adresi, `dosya_kimligi` yüklenen PDF'in depo kimliği). PDF sunucu eyleminden geçmez
-(eylemler 1 MB, Vercel ~4.5 MB sınırı): Cloudinary varsa tarayıcı `katalogPdfImzasi()` ile imza
-alıp doğrudan `raw/upload` yapar (kimlik `raw:boztepe/kataloglar/…`); yoksa (geliştirme)
-`POST /api/admin/katalog-pdf` dosyayı `public/yuklenenler/kataloglar/`'a yazar (gitignore'da).
-Cloudinary ücretsiz pakette `raw` dosya başına 10 MB ve PDF teslimi hesap ayarlarında açık
-olmalı (Settings → Security → "Allow delivery of PDF and ZIP files").
+(eylemler 1 MB, Vercel ~4.5 MB sınırı): canlıda `katalogPdfYuklemeHazirla()` tek kullanımlık bir
+yükleme adresi verir, tarayıcı dosyayı doğrudan Supabase Storage'a PUT eder; yerelde
+`POST /api/admin/katalog-pdf` `public/yuklenenler/kataloglar/`'a yazar.
+
+## Dosya deposu (`lib/storage/`)
+
+Kodun geri kalanı yalnız `lib/storage/index.ts`'i kullanır: `gorselYukle(dosya, klasör)`,
+`pdfYuklemeHazirla()`, `pdfYerelYukle()`, `dosyaSil(kimlik)`, `uzakDepo`, `DosyaHatasi`. Sürücüler:
+`supabase.ts` (`SUPABASE_URL` + `SUPABASE_SECRET_KEY` tanımlıysa; kova `SUPABASE_BUCKET`, varsayılan
+`site`) ve `yerel.ts`. Dosya adı kullanıcıdan alınmaz: `<klasör>/<uuid>.<uzantı>`, uzantı türden.
+Kimlik `sb:<yol>` ya da `yerel:<yol>` (silerken hangi depo olduğunu söyler). Kova
+`drizzle/0005_depo_kovasi.sql` ile kurulur: herkese açık okuma, yalnız görsel/PDF türleri, 50 MB.
+`drizzle/0004_supabase_api_kapali.sql`: Supabase'in REST API'si tablolara erişemez (RLS, anon/
+authenticated yetkileri kaldırıldı) — yeni tablo ekleyen migrasyon da RLS açmalı.
 
 ## Bekleyen işler
 
@@ -134,7 +143,7 @@ olmalı (Settings → Security → "Allow delivery of PDF and ZIP files").
       SSH alias `pers`). `gh` hâlâ giriş yapılmamış durumda; push SSH üzerinden çalışıyor.
 - [ ] Kullanıcıdan alınacaklar: logo, marka rengi onayı, firma bilgileri, IBAN listesi,
       "Hakkımızda" metni, gerçek ürün fotoğrafları, admin e-postası, domain yönlendirme kararı
-- [ ] Neon `DATABASE_URL` ve Cloudinary anahtarları — deploy anında lazım, geliştirme
-      sırasında PGlite ile ilerleniyor
+- [ ] Canlı kurulum: Supabase (`gfoukosahxsaiajjkksa`) migrasyonu + `npm run db:yonetici`, Vercel
+      projesi ve ortam değişkenleri (şablon: git dışındaki `.env.vercel`)
 - [ ] Canlıda Stok Yönetimi bağlantısı: Boztepe firması için Stok Yönetimi panelinde API
-      anahtarı + webhook (`/api/stok/webhook`) oluşturulup `STOK_*` değişkenleri Vercel'e girilecek
+      anahtarı + webhook (`/api/stok/webhook`) oluşturulup `SELSTOK_*` değişkenleri Vercel'e girilecek

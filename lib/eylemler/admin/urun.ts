@@ -13,7 +13,7 @@ import {
   urunOzellikleri,
   urunler,
 } from "@/lib/db/schema";
-import { gorselSil, gorselYukle } from "@/lib/storage";
+import { dosyaSil, gorselYukle } from "@/lib/storage";
 import { sadelestir, slugOlustur } from "@/lib/utils";
 
 export type EylemSonucu =
@@ -256,7 +256,7 @@ export async function urunSil(id: number): Promise<EylemSonucu> {
     .where(eq(urunGorselleri.urunId, id));
 
   await db.delete(urunler).where(eq(urunler.id, id));
-  await Promise.all(gorseller.map((g) => gorselSil(g.depoKimligi)));
+  await Promise.all(gorseller.map((g) => dosyaSil(g.depoKimligi)));
 
   onbellekTazele(kayitlar[0].slug);
   revalidatePath("/admin/urunler");
@@ -325,7 +325,7 @@ export async function urunGorseliSil(gorselId: number): Promise<EylemSonucu> {
   if (kayitlar.length === 0) return { durum: "hata", mesaj: "Görsel bulunamadı." };
 
   await db.delete(urunGorselleri).where(eq(urunGorselleri.id, gorselId));
-  await gorselSil(kayitlar[0].depoKimligi);
+  await dosyaSil(kayitlar[0].depoKimligi);
 
   revalidatePath(`/admin/urunler/${kayitlar[0].urunId}`);
   onbellekTazele();

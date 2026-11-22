@@ -8,7 +8,7 @@ import { ExternalLink, FileText, Link2, Save, Upload } from "lucide-react";
 import { Panel } from "@/components/admin/panel-parcalari";
 import { Buton, ButonBaglanti } from "@/components/ui/buton";
 import { Alan, AlanIzgarasi, Girdi, MetinKutusu, Onay } from "@/components/ui/form";
-import { bulutPdfKimligiOlustur, katalogKaydet, katalogPdfImzasi } from "@/lib/eylemler/admin/kataloglar";
+import { katalogKaydet, katalogPdfYuklemeHazirla } from "@/lib/eylemler/admin/kataloglar";
 import { cn } from "@/lib/utils";
 
 export type FormKatalogu = {
@@ -33,27 +33,27 @@ export function boyutMetni(bayt: number | null | undefined): string {
 }
 
 /**
- * PDF'i yükler: Cloudinary hazırsa tarayıcıdan doğrudan (sunucu yalnız imza
- * verir), değilse geliştirme rotasına. Dönüş, kaydedilecek adres ve kimlik.
+ * PDF'i yükler. Canlıda sunucu tek kullanımlık bir yükleme adresi verir ve dosya
+ * tarayıcıdan doğrudan depoya (Supabase Storage) gider — sunucudan geçmez, büyük
+ * PDF'ler de yüklenir. Yerelde geliştirme rotasına gönderilir.
  */
 async function pdfYukle(dosya: File): Promise<Dosya> {
   if (!(dosya.type === "application/pdf" || dosya.name.toLowerCase().endsWith(".pdf"))) {
     throw new Error("Yalnızca PDF dosyası yükleyebilirsiniz.");
   }
-  const imza = await katalogPdfImzasi();
-  if (imza) {
-    const govde = new FormData();
-    govde.append("file", dosya);
-    govde.append("api_key", imza.anahtar);
-    govde.append("timestamp", imza.zaman);
-    govde.append("folder", imza.klasor);
-    govde.append("signature", imza.imza);
-    const yanit = await fetch(`https://api.cloudinary.com/v1_1/${imza.bulut}/raw/upload`, { method: "POST", body: govde });
-    const sonuc = (await yanit.json().catch(() => ({}))) as { secure_url?: string; public_id?: string; bytes?: number; error?: { message?: string } };
-    if (!yanit.ok || !sonuc.secure_url || !sonuc.public_id) {
-      throw new Error(`Yüklenemedi: ${sonuc.error?.message ?? yanit.status}. (Cloudinary ücretsiz pakette dosya başına 10 MB sınırı vardır.)`);
+  if (dosya.size > 50 * 1024 * 1024) throw new Error("PDF en fazla 50 MB olabilir.");
+  const hazir = await katalogPdfYuklemeHazirla();
+  if (!hazir.yerel) {
+    const yanit = await fetch(hazir.yuklemeAdresi, {
+      method: "PUT",
+      headers: { "content-type": "application/pdf", "x-upsert": "false", "cache-control": "max-age=31536000" },
+      body: dosya,
+    });
+    if (!yanit.ok) {
+      const govde = (await yanit.json().catch(() => ({}))) as { message?: string; error?: string };
+      throw new Error(`Yüklenemedi: ${govde.message ?? govde.error ?? yanit.status}`);
     }
-    return { url: sonuc.secure_url, kimlik: await bulutPdfKimligiOlustur(sonuc.public_id), ad: dosya.name, boyut: sonuc.bytes ?? dosya.size };
+    return { url: hazir.url, kimlik: hazir.kimlik, ad: dosya.name, boyut: dosya.size };
   }
   const govde = new FormData();
   govde.append("dosya", dosya);

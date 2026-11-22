@@ -7,7 +7,7 @@ import { z } from "zod";
 import { eylemIcinOturum } from "@/lib/auth/koruma";
 import { db } from "@/lib/db";
 import { afisler, bankaHesaplari, galeriGorselleri } from "@/lib/db/schema";
-import { gorselSil, gorselYukle } from "@/lib/storage";
+import { dosyaSil, gorselYukle } from "@/lib/storage";
 import { ibanGecerliMi } from "@/lib/utils";
 
 import type { EylemSonucu } from "./urun";
@@ -124,8 +124,8 @@ export async function afisSil(id: number): Promise<EylemSonucu> {
 
   await db.delete(afisler).where(eq(afisler.id, id));
   await Promise.all([
-    gorselSil(kayitlar[0].gorselKimligi),
-    gorselSil(kayitlar[0].mobilGorselKimligi),
+    dosyaSil(kayitlar[0].gorselKimligi),
+    dosyaSil(kayitlar[0].mobilGorselKimligi),
   ]);
 
   anaSayfayiTazele();
@@ -182,7 +182,7 @@ export async function afisGorseliYukle(
       )
       .where(eq(afisler.id, id));
 
-    await gorselSil(eskiKimlik);
+    await dosyaSil(eskiKimlik);
 
     anaSayfayiTazele();
     revalidatePath(`/admin/afisler/${id}`);
@@ -209,7 +209,7 @@ export async function afisGorseliKaldir(id: number, mobilMi = false): Promise<Ey
     )
     .where(eq(afisler.id, id));
 
-  await gorselSil(eskiKimlik);
+  await dosyaSil(eskiKimlik);
 
   anaSayfayiTazele();
   revalidatePath(`/admin/afisler/${id}`);
@@ -290,7 +290,7 @@ export async function galeriGorseliSil(id: number): Promise<EylemSonucu> {
   if (kayitlar.length === 0) return { durum: "hata", mesaj: "Görsel bulunamadı." };
 
   await db.delete(galeriGorselleri).where(eq(galeriGorselleri.id, id));
-  await gorselSil(kayitlar[0].depoKimligi);
+  await dosyaSil(kayitlar[0].depoKimligi);
 
   revalidatePath("/galeri");
   revalidatePath("/admin/galeri");

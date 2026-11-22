@@ -23,8 +23,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       /* Gerçek fotoğraflar gelene kadar kullanılan yer tutucu servisi. */
       { protocol: "https", hostname: "placehold.co" },
-      /* Yönetici panelinden yüklenen görseller. */
-      { protocol: "https", hostname: "res.cloudinary.com" },
+      /* Yönetici panelinden yüklenen görseller: Supabase Storage'ın herkese açık kovası. */
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
     ],
     formats: ["image/avif", "image/webp"],
   },

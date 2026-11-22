@@ -20,11 +20,11 @@ export type YonetilenGorsel = {
 export function GorselYonetimi({
   urunId,
   gorseller,
-  cloudinaryHazir,
+  uzakDepo,
 }: {
   urunId: number;
   gorseller: YonetilenGorsel[];
-  cloudinaryHazir: boolean;
+  uzakDepo: boolean;
 }) {
   const router = useRouter();
   const dosyaGirdisi = useRef<HTMLInputElement>(null);
@@ -184,11 +184,11 @@ export function GorselYonetimi({
           </div>
         )}
 
-        {!cloudinaryHazir && (
+        {!uzakDepo && (
           <p className="mt-4 rounded-yumusak border border-uyari/30 bg-uyari/8 px-3.5 py-2.5 text-sm text-murekkep-yumusak">
-            Cloudinary anahtarları tanımlı olmadığı için fotoğraflar bu bilgisayarda{" "}
-            <code className="rakam">public/yuklenenler</code> klasörüne kaydediliyor. Site
-            yayına alınmadan önce anahtarların girilmesi gerekiyor.
+            Dosya deposu (Supabase Storage) ayarlı olmadığı için fotoğraflar bu bilgisayarda{" "}
+          <code className="rakam">public/yuklenenler</code> klasörüne kaydediliyor. Canlıda SUPABASE_URL ve
+          SUPABASE_SECRET_KEY tanımlı olmalı.
           </p>
         )}
       </div>

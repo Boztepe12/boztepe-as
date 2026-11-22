@@ -36,6 +36,13 @@
       "when": 1795346131742,
       "tag": "0004_supabase_api_kapali",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795355601449,
+      "tag": "0005_depo_kovasi",
+      "breakpoints": true
     }
   ]
 }

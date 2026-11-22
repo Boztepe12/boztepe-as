@@ -7,7 +7,7 @@ import { z } from "zod";
 import { eylemIcinOturum } from "@/lib/auth/koruma";
 import { db } from "@/lib/db";
 import { kategoriler, markalar, urunler } from "@/lib/db/schema";
-import { gorselSil, gorselYukle } from "@/lib/storage";
+import { dosyaSil, gorselYukle } from "@/lib/storage";
 import { stokBaglantisiVar } from "@/lib/stok/istemci";
 import { slugOlustur } from "@/lib/utils";
 
@@ -216,7 +216,7 @@ export async function kategoriSil(id: number): Promise<EylemSonucu> {
   }
 
   await db.delete(kategoriler).where(eq(kategoriler.id, id));
-  await gorselSil(kayitlar[0].gorselKimligi);
+  await dosyaSil(kayitlar[0].gorselKimligi);
 
   onbellekTazele();
   revalidatePath("/admin/kategoriler");
@@ -246,7 +246,7 @@ export async function kategoriGorseliYukle(id: number, veri: FormData): Promise<
       .where(eq(kategoriler.id, id));
 
     /* Yeni görsel yerine geçtiği için eskisini depodan siliyoruz. */
-    await gorselSil(kayitlar[0].gorselKimligi);
+    await dosyaSil(kayitlar[0].gorselKimligi);
 
     onbellekTazele();
     revalidatePath(`/admin/kategoriler/${id}`);
@@ -272,7 +272,7 @@ export async function kategoriGorseliKaldir(id: number): Promise<EylemSonucu> {
     .set({ gorselUrl: null, gorselKimligi: null, guncellemeTarihi: new Date() })
     .where(eq(kategoriler.id, id));
 
-  await gorselSil(kayitlar[0].gorselKimligi);
+  await dosyaSil(kayitlar[0].gorselKimligi);
 
   onbellekTazele();
   revalidatePath(`/admin/kategoriler/${id}`);
@@ -362,7 +362,7 @@ export async function markaSil(id: number): Promise<EylemSonucu> {
   }
 
   await db.delete(markalar).where(eq(markalar.id, id));
-  await gorselSil(kayitlar[0].logoKimligi);
+  await dosyaSil(kayitlar[0].logoKimligi);
 
   onbellekTazele();
   revalidatePath("/admin/markalar");
@@ -391,7 +391,7 @@ export async function markaLogosuYukle(id: number, veri: FormData): Promise<Eyle
       .set({ logoUrl: yuklenen.url, logoKimligi: yuklenen.kimlik, guncellemeTarihi: new Date() })
       .where(eq(markalar.id, id));
 
-    await gorselSil(kayitlar[0].logoKimligi);
+    await dosyaSil(kayitlar[0].logoKimligi);
 
     onbellekTazele();
     revalidatePath(`/admin/markalar/${id}`);
@@ -417,7 +417,7 @@ export async function markaLogosuKaldir(id: number): Promise<EylemSonucu> {
     .set({ logoUrl: null, logoKimligi: null, guncellemeTarihi: new Date() })
     .where(eq(markalar.id, id));
 
-  await gorselSil(kayitlar[0].logoKimligi);
+  await dosyaSil(kayitlar[0].logoKimligi);
 
   onbellekTazele();
   revalidatePath(`/admin/markalar/${id}`);

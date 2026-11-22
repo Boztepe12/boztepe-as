@@ -8,7 +8,7 @@ import { Panel, SayfaBasligi } from "@/components/admin/panel-parcalari";
 import { UrunStokAyari } from "@/components/admin/stok-entegrasyonu";
 import { UrunFormu, type FormUrunu } from "@/components/admin/urun-formu";
 import { formSecenekleri, yoneticiUrunGetir } from "@/lib/sorgular/admin";
-import { cloudinaryHazir } from "@/lib/storage";
+import { uzakDepo } from "@/lib/storage";
 import { fiyatBicimle, kisalt, tarihSaatBicimle } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -71,7 +71,7 @@ export default async function UrunDuzenleSayfasi({
             url: gorsel.url,
             altMetin: gorsel.altMetin,
           }))}
-          cloudinaryHazir={cloudinaryHazir}
+          uzakDepo={uzakDepo}
         />
       </div>
 
