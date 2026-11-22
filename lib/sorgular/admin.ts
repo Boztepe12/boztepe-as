@@ -107,13 +107,52 @@ export async function dikkatGerektirenler() {
 /* Ürün yönetimi                                                       */
 /* ------------------------------------------------------------------ */
 
+export const YAYIN_FILTRELERI = ["aktif", "pasif"] as const;
+export const STOK_FILTRELERI = ["stokta", "tukendi", "siparise_bagli"] as const;
+export const OZEL_FILTRELER = [
+  "indirimli",
+  "fiyatsiz",
+  "fiyat-gizli",
+  "one-cikan",
+  "yeni",
+  "gorselsiz",
+  "stoktan",
+  "elle",
+] as const;
+export const YONETICI_SIRALAMALARI = ["guncel", "yeni", "ad", "fiyat-artan", "fiyat-azalan"] as const;
+
 export type YoneticiUrunFiltresi = {
   arama?: string;
   kategoriId?: number;
   markaId?: number;
-  durum?: "hepsi" | "aktif" | "pasif" | "indirimli" | "tukendi";
+  yayin?: (typeof YAYIN_FILTRELERI)[number];
+  stok?: (typeof STOK_FILTRELERI)[number];
+  ozel?: (typeof OZEL_FILTRELER)[number];
+  minFiyat?: number;
+  maxFiyat?: number;
+  siralama?: (typeof YONETICI_SIRALAMALARI)[number];
   sayfa?: number;
 };
+
+/** Listede görünen fiyat: indirimli fiyat varsa o (vitrindeki fiyat filtresiyle aynı). */
+const yoneticiGecerliFiyat = sql`coalesce(${urunler.indirimliFiyat}, ${urunler.fiyat})`;
+
+const ilkGorselVar = sql`exists (select 1 from ${urunGorselleri} where ${urunGorselleri.urunId} = ${urunler.id})`;
+
+function yoneticiSiralamasi(siralama: YoneticiUrunFiltresi["siralama"]): SQL[] {
+  switch (siralama) {
+    case "yeni":
+      return [desc(urunler.olusturmaTarihi), desc(urunler.id)];
+    case "ad":
+      return [asc(urunler.ad), asc(urunler.id)];
+    case "fiyat-artan":
+      return [sql`${yoneticiGecerliFiyat} asc nulls last`, asc(urunler.id)];
+    case "fiyat-azalan":
+      return [sql`${yoneticiGecerliFiyat} desc nulls last`, asc(urunler.id)];
+    default:
+      return [desc(urunler.guncellemeTarihi), desc(urunler.id)];
+  }
+}
 
 export async function yoneticiUrunleri(filtre: YoneticiUrunFiltresi = {}) {
   const sayfa = Math.max(1, filtre.sayfa ?? 1);
@@ -133,18 +172,36 @@ export async function yoneticiUrunleri(filtre: YoneticiUrunFiltresi = {}) {
   if (filtre.kategoriId) kosullar.push(eq(urunler.kategoriId, filtre.kategoriId));
   if (filtre.markaId) kosullar.push(eq(urunler.markaId, filtre.markaId));
 
-  switch (filtre.durum) {
-    case "aktif":
-      kosullar.push(eq(urunler.aktif, true));
-      break;
-    case "pasif":
-      kosullar.push(eq(urunler.aktif, false));
-      break;
+  if (filtre.yayin) kosullar.push(eq(urunler.aktif, filtre.yayin === "aktif"));
+  if (filtre.stok) kosullar.push(eq(urunler.stokDurumu, filtre.stok));
+  if (filtre.minFiyat !== undefined) kosullar.push(sql`${yoneticiGecerliFiyat} >= ${filtre.minFiyat}`);
+  if (filtre.maxFiyat !== undefined) kosullar.push(sql`${yoneticiGecerliFiyat} <= ${filtre.maxFiyat}`);
+
+  switch (filtre.ozel) {
     case "indirimli":
       kosullar.push(isNotNull(urunler.indirimliFiyat));
       break;
-    case "tukendi":
-      kosullar.push(eq(urunler.stokDurumu, "tukendi"));
+    case "fiyatsiz":
+      /* Sitede fiyatı boş görünenler: fiyat girilmemiş ve gizlenmemiş. */
+      kosullar.push(sql`${urunler.fiyat} is null`, eq(urunler.fiyatGizli, false));
+      break;
+    case "fiyat-gizli":
+      kosullar.push(eq(urunler.fiyatGizli, true));
+      break;
+    case "one-cikan":
+      kosullar.push(eq(urunler.oneCikan, true));
+      break;
+    case "yeni":
+      kosullar.push(eq(urunler.yeniUrun, true));
+      break;
+    case "gorselsiz":
+      kosullar.push(sql`not ${ilkGorselVar}`);
+      break;
+    case "stoktan":
+      kosullar.push(isNotNull(urunler.stokBarkod));
+      break;
+    case "elle":
+      kosullar.push(sql`${urunler.stokBarkod} is null`);
       break;
   }
 
@@ -180,7 +237,7 @@ export async function yoneticiUrunleri(filtre: YoneticiUrunFiltresi = {}) {
     .leftJoin(kategoriler, eq(urunler.kategoriId, kategoriler.id))
     .leftJoin(markalar, eq(urunler.markaId, markalar.id))
     .where(kosul)
-    .orderBy(desc(urunler.guncellemeTarihi))
+    .orderBy(...yoneticiSiralamasi(filtre.siralama))
     .limit(sayfaBoyutu)
     .offset((sayfa - 1) * sayfaBoyutu);
 

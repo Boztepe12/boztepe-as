@@ -7,11 +7,30 @@ import { UrunFiltreCubugu } from "@/components/admin/urun-filtre-cubugu";
 import { UrunListesi, type ListeUrunu } from "@/components/admin/urun-listesi";
 import { ButonBaglanti } from "@/components/ui/buton";
 import { BosDurum } from "@/components/ui/durum";
-import { formSecenekleri, yoneticiUrunleri } from "@/lib/sorgular/admin";
+import {
+  formSecenekleri,
+  OZEL_FILTRELER,
+  STOK_FILTRELERI,
+  YAYIN_FILTRELERI,
+  YONETICI_SIRALAMALARI,
+  yoneticiUrunleri,
+} from "@/lib/sorgular/admin";
 
 export const metadata: Metadata = { title: "Ürünler" };
 
 type Parametreler = Record<string, string | string[] | undefined>;
+
+/** Listede olmayan değer (elle yazılmış, eski bağlantı) filtre sayılmaz. */
+function gecerli<T extends string>(liste: readonly T[], deger: string): T | undefined {
+  return (liste as readonly string[]).includes(deger) ? (deger as T) : undefined;
+}
+
+/** "24.999" ya da "24999,90" gibi yazımları sayıya çevirir; bozuksa yok sayar. */
+function tutar(deger: string): number | undefined {
+  if (!deger.trim()) return undefined;
+  const sayi = Number(deger.replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(sayi) && sayi >= 0 ? sayi : undefined;
+}
 
 /** Adres çubuğunda aynı ad iki kez geçebilir; ilk değeri esas alıyoruz. */
 function tek(deger: string | string[] | undefined): string {
@@ -26,24 +45,39 @@ export default async function UrunlerSayfasi({
 }) {
   const parametreler = await searchParams;
 
-  const arama = tek(parametreler.arama);
-  const kategori = tek(parametreler.kategori);
-  const marka = tek(parametreler.marka);
-  const durum = tek(parametreler.durum);
+  /* Eski tek "durum" kutusunun yer imleri yeni filtrelere çevrilir. */
+  const eskiDurum = tek(parametreler.durum);
+  const deger = {
+    arama: tek(parametreler.arama),
+    kategori: tek(parametreler.kategori),
+    marka: tek(parametreler.marka),
+    yayin: tek(parametreler.yayin) || (eskiDurum === "aktif" || eskiDurum === "pasif" ? eskiDurum : ""),
+    stok: tek(parametreler.stok) || (eskiDurum === "tukendi" ? eskiDurum : ""),
+    ozel: tek(parametreler.ozel) || (eskiDurum === "indirimli" ? eskiDurum : ""),
+    min: tek(parametreler.min),
+    max: tek(parametreler.max),
+    sirala: tek(parametreler.sirala),
+  };
   const sayfa = Number(tek(parametreler.sayfa)) || 1;
 
   const [sonuc, secenekler] = await Promise.all([
     yoneticiUrunleri({
-      arama: arama || undefined,
-      kategoriId: Number(kategori) || undefined,
-      markaId: Number(marka) || undefined,
-      durum: (durum || "hepsi") as "hepsi" | "aktif" | "pasif" | "indirimli" | "tukendi",
+      arama: deger.arama || undefined,
+      kategoriId: Number(deger.kategori) || undefined,
+      markaId: Number(deger.marka) || undefined,
+      yayin: gecerli(YAYIN_FILTRELERI, deger.yayin),
+      stok: gecerli(STOK_FILTRELERI, deger.stok),
+      ozel: gecerli(OZEL_FILTRELER, deger.ozel),
+      minFiyat: tutar(deger.min),
+      maxFiyat: tutar(deger.max),
+      siralama: gecerli(YONETICI_SIRALAMALARI, deger.sirala),
       sayfa,
     }),
     formSecenekleri(),
   ]);
 
-  const filtreVar = Boolean(arama || kategori || marka || (durum && durum !== "hepsi"));
+  /* Sıralama filtre sayılmaz: boş listede "filtreleri temizle" önerisi yalnız gerçek filtrede. */
+  const filtreVar = [deger.arama, deger.kategori, deger.marka, deger.yayin, deger.stok, deger.ozel, deger.min, deger.max].some(Boolean);
 
   return (
     <>
@@ -63,7 +97,8 @@ export default async function UrunlerSayfasi({
       />
 
       <UrunFiltreCubugu
-        deger={{ arama, kategori, marka, durum }}
+        key={JSON.stringify(deger)}
+        deger={deger}
         secenekler={secenekler}
       />
 
@@ -96,12 +131,7 @@ export default async function UrunlerSayfasi({
             yol="/admin/urunler"
             sayfa={sonuc.sayfa}
             sayfaSayisi={sonuc.sayfaSayisi}
-            sorgu={{
-              arama: arama || undefined,
-              kategori: kategori || undefined,
-              marka: marka || undefined,
-              durum: durum && durum !== "hepsi" ? durum : undefined,
-            }}
+            sorgu={deger}
           />
         </>
       )}

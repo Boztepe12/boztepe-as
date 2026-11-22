@@ -65,17 +65,17 @@ export default async function PanelOzetSayfasi() {
           etiket="Yayındaki ürün"
           deger={ozet.urun.aktif}
           altMetin={`${ozet.urun.toplam} üründen`}
-          yol="/admin/urunler?durum=aktif"
+          yol="/admin/urunler?yayin=aktif"
         />
         <OzetKutusu
           etiket="İndirimli ürün"
           deger={ozet.urun.indirimli}
-          yol="/admin/urunler?durum=indirimli"
+          yol="/admin/urunler?ozel=indirimli"
         />
         <OzetKutusu
           etiket="Tükenen ürün"
           deger={ozet.urun.tukenen}
-          yol="/admin/urunler?durum=tukendi"
+          yol="/admin/urunler?stok=tukendi"
         />
         <OzetKutusu
           etiket="Kategori / Marka"
