@@ -30,6 +30,22 @@ const baglantiAdresi = uzakAdres();
 /** Uzak veritabanı (Neon ya da Supabase gibi bir Postgres) kullanılıyor mu; adı tarihsel. */
 export const neonKullaniliyor = baglantiAdresi !== null;
 
+/* Derleme logunda hangi veritabanına gidildiği görünsün (şifre yazılmaz). */
+if (process.env.NEXT_PHASE === "phase-production-build" && !global_Yazildi()) {
+  if (baglantiAdresi) {
+    const u = new URL(baglantiAdresi);
+    console.log(`[db] uzak veritabanı: ${u.hostname}:${u.port || "5432"} kullanıcı ${u.username}`);
+  } else {
+    console.log(`[db] DATABASE_URL yok (VERCEL=${process.env.VERCEL ?? "-"}), yerel PGlite`);
+  }
+}
+function global_Yazildi(): boolean {
+  const g = globalThis as { __boztepeDbLog?: boolean };
+  const once = g.__boztepeDbLog === true;
+  g.__boztepeDbLog = true;
+  return once;
+}
+
 /*
  * Next.js geliştirme sunucusu her dosya değişikliğinde modülleri yeniden yükler.
  * PGlite örneği global'de tutulmazsa her yenilemede yeni bir veritabanı açılır ve

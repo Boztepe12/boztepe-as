@@ -53,6 +53,8 @@ function pgIstemcisi(adres: string, betik = false) {
     idle_timeout: betik ? 1 : 20,
     // Ulaşılamayan bir adres derlemeyi ve sayfayı dakikalarca asılı tutmasın: 10 sn'de hata ver.
     connect_timeout: 10,
+    // Asılı kalan bir sorgu da sonsuza dek beklemesin: sunucu 15 sn'de kessin.
+    connection: { statement_timeout: 15000 },
     onnotice: () => {},
   });
 }
