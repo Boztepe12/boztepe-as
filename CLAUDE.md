@@ -109,10 +109,18 @@ https://selstok.vercel.app; eski `stok-yonetimi-steel.vercel.app` adresi yönlen
   son eşitlemeden beri stokta değişenleri çeker; sitede silinen bir ürün yalnız "Tümünü yeniden
   oku" ile geri gelir.
 - Ortam değişkenleri (repo herkese açık — değerler yalnız `.env.local` ve Vercel'de):
-  `STOK_API_URL` (Selstok paneli: `https://selstok.vercel.app`; yerelde hâlâ eski adres var, o da çalışır),
+  `STOK_API_URL` (Selstok paneli: `https://selstok.vercel.app`),
   `STOK_API_KEY` (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı, firmanın sahibi
   oluşturur), `STOK_WEBHOOK_SECRET` (aynı ekranda webhook eklenince verilen sır; webhook adresi
   `https://<site>/api/stok/webhook`), `CRON_SECRET`.
+
+## Anahtarlar: Doppler
+
+Anahtarlar Doppler'da, proje **`boztepe-as`** (çalışma alanı overfitsoft): `dev` = bu bilgisayar,
+`prd` = canlı. `doppler.yaml` repoyu `boztepe-as`/`dev`'e bağlar (`doppler setup` bir kez). `npm run dev`
+= `doppler run -- next dev`; `npm run dev:local` düz `next dev` (`.env.local`'ı okur, yedek olarak
+duruyor). Vercel'deki ortam değişkenleri ayrı: Doppler → Vercel entegrasyonu kurulana kadar canlıda
+değişen anahtar Vercel'de de güncellenmeli.
 
 ## Kataloglar
 
