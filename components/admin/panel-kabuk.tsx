@@ -87,14 +87,23 @@ export function etkinSatir(yol: string): Satir | undefined {
     .sort((a, b) => b.yol.length - a.yol.length)[0];
 }
 
-/** Üst bardaki konum: "Katalog › Ürünler › Yeni" gibi. */
-export function konum(yol: string): string[] {
-  if (yol === "/admin/hesap" || yol.startsWith("/admin/hesap/")) return ["Hesabım"];
+type KonumParcasi = { ad: string; yol: string };
+
+/**
+ * Üst bardaki konum: "Katalog › Ürünler › Yeni" gibi. Her parça bir yere gider:
+ * grup kendi ilk sayfasına, sayfa kendi listesine. Son parça bulunulan yerdir,
+ * bağlantı olarak çizilmez.
+ */
+export function konum(yol: string): KonumParcasi[] {
+  if (yol === "/admin/hesap" || yol.startsWith("/admin/hesap/")) return [{ ad: "Hesabım", yol: "/admin/hesap" }];
   const satir = etkinSatir(yol);
   if (!satir) return [];
-  const grup = MENU.find((g) => g.satirlar.includes(satir))!.ad;
-  const parcalar = [grup, satir.ad];
-  if (yol !== satir.yol) parcalar.push(yol.endsWith("/yeni") ? "Yeni" : "Düzenle");
+  const grup = MENU.find((g) => g.satirlar.includes(satir))!;
+  const parcalar = [
+    { ad: grup.ad, yol: grup.satirlar[0].yol },
+    { ad: satir.ad, yol: satir.yol },
+  ];
+  if (yol !== satir.yol) parcalar.push({ ad: yol.endsWith("/yeni") ? "Yeni" : "Düzenle", yol });
   return parcalar;
 }
 
@@ -167,16 +176,20 @@ export function PanelKabuk({
           </button>
           <nav aria-label="Konum" className="flex min-w-0 items-center gap-1.5 text-sm">
             {parcalar.map((p, i) => (
-              <span key={`${p}-${i}`} className="flex min-w-0 items-center gap-1.5">
+              <span key={`${p.ad}-${i}`} className="flex min-w-0 items-center gap-1.5">
                 {i > 0 && <ChevronRight className="size-3.5 shrink-0 text-solgun" />}
-                <span
-                  className={cn(
-                    "truncate",
-                    i === parcalar.length - 1 ? "font-medium text-murekkep" : "hidden text-solgun sm:inline",
-                  )}
-                >
-                  {p}
-                </span>
+                {i === parcalar.length - 1 ? (
+                  <span className="truncate font-medium text-murekkep" aria-current="page">
+                    {p.ad}
+                  </span>
+                ) : (
+                  <Link
+                    href={p.yol}
+                    className="hidden truncate rounded-yumusak text-solgun transition-colors hover:text-kiremit hover:underline sm:inline"
+                  >
+                    {p.ad}
+                  </Link>
+                )}
               </span>
             ))}
           </nav>
