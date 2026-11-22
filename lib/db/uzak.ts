@@ -1,19 +1,21 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { migrate as neonMigrate } from "drizzle-orm/neon-http/migrator";
-import { drizzle as drizzlePg } from "drizzle-orm/postgres-js";
-import { migrate as pgMigrate } from "drizzle-orm/postgres-js/migrator";
-import postgres from "postgres";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { migrate as pgMigrate } from "drizzle-orm/node-postgres/migrator";
+import { Pool } from "pg";
 
 /**
  * Uzak (canlı) veritabanı: `DATABASE_URL` tanımlıysa. İki tür desteklenir:
  *
  * - **Neon** (alan adı `neon.tech`): Neon'un HTTP sürücüsü — Neon'a özel bir
  *   protokol, başka bir Postgres'le konuşmaz.
- * - **Diğer her Postgres** (Supabase dahil): standart sürücü `postgres` (postgres.js).
- *   Supabase'te Vercel için "Transaction pooler" adresi (port 6543) kullanılır;
- *   o havuz hazırlanmış sorguları (prepared statements) desteklemediği için
- *   `prepare: false`. Sunucusuz ortamda her örnek tek bağlantı tutar (`max: 1`).
+ * - **Diğer her Postgres** (Supabase dahil): standart sürücü `pg` (node-postgres).
+ *   Supabase'te Vercel için "Transaction pooler" adresi (port 6543) kullanılır.
+ *   `pg` her bağlantıda bir sorgu bitmeden ötekini göndermez ve adsız sorgular
+ *   kullanır; ikisi de bu havuz için gerekli. (postgres.js tek bağlantıya birden
+ *   çok sorgu yığıyordu — pipelining — ve Supabase'in Transaction pooler'ında
+ *   sayfanın paralel sorguları sonsuza dek asılı kalıyordu: derleme 60 sn'de düştü.)
  *
  * Yerelde (`DATABASE_URL` yoksa) PGlite kullanılır; bkz. `lib/db/index.ts`.
  */
@@ -42,27 +44,30 @@ export function neonMu(adres: string): boolean {
   }
 }
 
-function pgIstemcisi(adres: string, betik = false) {
-  const host = new URL(adres).hostname;
-  const yerel = host === "localhost" || host === "127.0.0.1";
-  return postgres(adres, {
-    prepare: false,
-    max: 1,
-    ssl: yerel ? false : "require",
-    // Betikler (migrasyon, tohum) bitince bağlantı kapansın; uygulamada boşta 20 sn sonra.
-    idle_timeout: betik ? 1 : 20,
-    // Ulaşılamayan bir adres derlemeyi ve sayfayı dakikalarca asılı tutmasın: 10 sn'de hata ver.
-    connect_timeout: 10,
-    // Asılı kalan bir sorgu da sonsuza dek beklemesin: sunucu 15 sn'de kessin.
-    connection: { statement_timeout: 15000 },
-    onnotice: () => {},
+function pgHavuzu(adres: string, betik = false) {
+  const url = new URL(adres);
+  const yerel = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  // sslmode adresde kalırsa pg kendi ayarını uygular ve aşağıdakini ezer.
+  url.searchParams.delete("sslmode");
+  return new Pool({
+    connectionString: url.toString(),
+    // Supabase'in sertifikası Node'un güvendiği köklerde yok; bağlantı yine şifreli.
+    ssl: yerel ? false : { rejectUnauthorized: false },
+    // Sunucusuz: örnek başına birkaç bağlantı yeter; havuz (Supavisor) gerisini taşır.
+    max: betik ? 1 : 5,
+    idleTimeoutMillis: betik ? 1000 : 20000,
+    // Ulaşılamayan bir adres derlemeyi ve sayfayı dakikalarca asılı tutmasın.
+    connectionTimeoutMillis: 10000,
+    // Asılı kalan bir sorgu da sonsuza dek beklemesin.
+    statement_timeout: 15000,
+    query_timeout: 20000,
   });
 }
 
 /** Drizzle bağlantısı; tip, uygulamanın ortak tipine (Neon) uyarlanır. */
 export function uzakBaglanti<S extends Record<string, unknown>>(adres: string, schema: S) {
   if (neonMu(adres)) return drizzleNeon(neon(adres), { schema, casing: "snake_case" });
-  return drizzlePg(pgIstemcisi(adres), { schema, casing: "snake_case" }) as unknown as ReturnType<
+  return drizzlePg(pgHavuzu(adres), { schema, casing: "snake_case" }) as unknown as ReturnType<
     typeof drizzleNeon<S>
   >;
 }
@@ -73,11 +78,11 @@ export async function uzakMigrate(adres: string, klasor: string): Promise<string
     await neonMigrate(drizzleNeon(neon(adres)), { migrationsFolder: klasor });
     return "Neon";
   }
-  const istemci = pgIstemcisi(adres, true);
+  const havuz = pgHavuzu(adres, true);
   try {
-    await pgMigrate(drizzlePg(istemci), { migrationsFolder: klasor });
+    await pgMigrate(drizzlePg(havuz), { migrationsFolder: klasor });
   } finally {
-    await istemci.end({ timeout: 5 });
+    await havuz.end();
   }
   return "Postgres";
 }
@@ -85,9 +90,9 @@ export async function uzakMigrate(adres: string, klasor: string): Promise<string
 /** Tohum betiği için: bitince kapatılabilen bağlantı. */
 export function uzakBetikBaglantisi<S extends Record<string, unknown>>(adres: string, schema: S) {
   if (neonMu(adres)) return { db: drizzleNeon(neon(adres), { schema, casing: "snake_case" }), kapat: async () => {} };
-  const istemci = pgIstemcisi(adres, true);
+  const havuz = pgHavuzu(adres, true);
   return {
-    db: drizzlePg(istemci, { schema, casing: "snake_case" }) as unknown as ReturnType<typeof drizzleNeon<S>>,
-    kapat: () => istemci.end({ timeout: 5 }),
+    db: drizzlePg(havuz, { schema, casing: "snake_case" }) as unknown as ReturnType<typeof drizzleNeon<S>>,
+    kapat: () => havuz.end(),
   };
 }
