@@ -20,6 +20,8 @@ export type UrunFiltresi = {
   maxFiyat?: number;
   sadeceIndirimli?: boolean;
   sadeceStokta?: boolean;
+  sadeceYeni?: boolean;
+  sadeceTaksitli?: boolean;
   siralama?: Siralama;
   sayfa?: number;
   sayfaBoyutu?: number;
@@ -147,6 +149,8 @@ export async function urunleriListele(filtre: UrunFiltresi = {}) {
   if (filtre.maxFiyat !== undefined) kosullar.push(lte(gecerliFiyat, String(filtre.maxFiyat)));
   if (filtre.sadeceIndirimli) kosullar.push(isNotNull(urunler.indirimliFiyat));
   if (filtre.sadeceStokta) kosullar.push(eq(urunler.stokDurumu, "stokta"));
+  if (filtre.sadeceYeni) kosullar.push(eq(urunler.yeniUrun, true));
+  if (filtre.sadeceTaksitli) kosullar.push(sql`${urunler.taksitSayisi} > 1`);
 
   const kosul = and(...kosullar);
 

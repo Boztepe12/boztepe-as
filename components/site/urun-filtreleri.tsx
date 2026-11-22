@@ -74,6 +74,8 @@ export function UrunFiltreleri({
   const maxFiyat = parametreler.get("max") ?? "";
   const indirimli = parametreler.get("indirimli") === "1";
   const stokta = parametreler.get("stokta") === "1";
+  const yeni = parametreler.get("yeni") === "1";
+  const taksitli = parametreler.get("taksitli") === "1";
 
   /**
    * Filtre değişince sayfa numarası sıfırlanmalı; aksi halde kullanıcı 4. sayfadayken
@@ -112,7 +114,7 @@ export function UrunFiltreleri({
   }
 
   const aktifFiltreSayisi =
-    secilenMarkalar.length + (minFiyat ? 1 : 0) + (maxFiyat ? 1 : 0) + (indirimli ? 1 : 0) + (stokta ? 1 : 0);
+    secilenMarkalar.length + (minFiyat ? 1 : 0) + (maxFiyat ? 1 : 0) + (indirimli ? 1 : 0) + (stokta ? 1 : 0) + (yeni ? 1 : 0) + (taksitli ? 1 : 0);
 
   function hepsiniTemizle() {
     const yeni = new URLSearchParams();
@@ -181,6 +183,24 @@ export function UrunFiltreleri({
               className="size-4 accent-kiremit"
             />
             Sadece stoktakiler
+          </label>
+          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-murekkep">
+            <input
+              type="checkbox"
+              checked={yeni}
+              onChange={(o) => parametreGuncelle({ yeni: o.target.checked ? "1" : null })}
+              className="size-4 accent-kiremit"
+            />
+            Yeni ürünler
+          </label>
+          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-murekkep">
+            <input
+              type="checkbox"
+              checked={taksitli}
+              onChange={(o) => parametreGuncelle({ taksitli: o.target.checked ? "1" : null })}
+              className="size-4 accent-kiremit"
+            />
+            Taksit imkânı olanlar
           </label>
         </div>
       </fieldset>

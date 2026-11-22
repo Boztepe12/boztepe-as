@@ -46,6 +46,8 @@ function filtreCoz(parametreler: AramaParametreleri) {
     maxFiyat: sayi("max"),
     sadeceIndirimli: tek("indirimli") === "1",
     sadeceStokta: tek("stokta") === "1",
+    sadeceYeni: tek("yeni") === "1",
+    sadeceTaksitli: tek("taksitli") === "1",
     siralama: siralaHam && gecerliSiralamalar.includes(siralaHam) ? siralaHam : undefined,
     sayfa: sayi("sayfa") ?? 1,
   };
@@ -83,6 +85,8 @@ export async function UrunListeleme({
       maxFiyat: filtre.maxFiyat,
       sadeceIndirimli: filtre.sadeceIndirimli,
       sadeceStokta: filtre.sadeceStokta,
+      sadeceYeni: filtre.sadeceYeni,
+      sadeceTaksitli: filtre.sadeceTaksitli,
       siralama: filtre.siralama,
       sayfa: filtre.sayfa,
       sayfaBoyutu: 12,
