@@ -36,7 +36,7 @@ function pgIstemcisi(adres: string, betik = false) {
   const yerel = host === "localhost" || host === "127.0.0.1";
   return postgres(adres, {
     prepare: false,
-    max: betik ? 1 : 1,
+    max: 1,
     ssl: yerel ? false : "require",
     // Betikler (migrasyon, tohum) bitince bağlantı kapansın; uygulamada boşta 20 sn sonra.
     idle_timeout: betik ? 1 : 20,

@@ -15,7 +15,8 @@
     "db:onar": "node scripts/db-kontrol.mjs",
     "db:unlock": "node -e \"require('fs').rmSync('.pglite/postmaster.pid',{force:true})\"",
     "db:studio": "drizzle-kit studio",
-    "sohbet:kaydet": "node scripts/sohbet-disari-aktar.mjs"
+    "sohbet:kaydet": "node scripts/sohbet-disari-aktar.mjs",
+    "db:yonetici": "tsx scripts/yonetici-ekle.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",
