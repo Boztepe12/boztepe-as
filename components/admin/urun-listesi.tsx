@@ -9,7 +9,7 @@ import { ImageOff, Pencil, Star, Trash2 } from "lucide-react";
 
 import { TabloSarmali } from "@/components/admin/panel-parcalari";
 import { Buton } from "@/components/ui/buton";
-import { Rozet, StokRozeti } from "@/components/ui/rozet";
+import { StokRozeti } from "@/components/ui/rozet";
 import { urunDurumDegistir, urunSil, urunlerToplu } from "@/lib/eylemler/admin/urun";
 import { cn, fiyatBicimle, indirimYuzdesi, tarihSaatBicimle } from "@/lib/utils";
 
@@ -107,8 +107,7 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
   function Fiyat({ urun }: { urun: ListeUrunu }) {
     const yuzde = indirimYuzdesi(urun.fiyat, urun.indirimliFiyat);
 
-    if (urun.fiyatGizli) return <Rozet ton="notr">Fiyat gizli</Rozet>;
-
+    /* Sitede gizli olsa da fiyat burada görünür; gizli olduğunu "Sitede fiyat" sütunu söyler. */
     if (urun.indirimliFiyat) {
       return (
         <>
@@ -122,6 +121,23 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
     }
 
     return <p className="rakam font-medium text-murekkep">{fiyatBicimle(urun.fiyat)}</p>;
+  }
+
+  /** Sitede fiyat gösterilsin mi: kapalıyken ziyaretçi "Fiyat sorunuz" görür. */
+  function SitedeFiyat({ urun }: { urun: ListeUrunu }) {
+    return (
+      <div className="flex items-center gap-2">
+        <YayinAnahtari
+          acik={!urun.fiyatGizli}
+          beklemede={islemde}
+          etiket={`${urun.ad} fiyatı sitede gösterilsin`}
+          onDegis={(yeni) => calistir(() => urunDurumDegistir(urun.id, "fiyatGizli", !yeni))}
+        />
+        <span className={cn("text-xs", urun.fiyatGizli ? "text-solgun" : "text-murekkep-yumusak")}>
+          {urun.fiyatGizli ? "Gizli" : "Görünür"}
+        </span>
+      </div>
+    );
   }
 
   function Anahtarlar({ urun }: { urun: ListeUrunu }) {
@@ -265,6 +281,9 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
                   </div>
                   <StokRozeti durum={urun.stokDurumu} />
                 </div>
+                <div className="mt-2 flex items-center gap-2 text-xs text-solgun">
+                  Sitede fiyat <SitedeFiyat urun={urun} />
+                </div>
               </div>
             </div>
 
@@ -293,6 +312,7 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
               <th className="px-4 py-3 font-medium">Ürün</th>
               <th className="px-4 py-3 font-medium">Kategori / Marka</th>
               <th className="px-4 py-3 font-medium">Fiyat</th>
+              <th className="px-4 py-3 font-medium">Sitede fiyat</th>
               <th className="px-4 py-3 font-medium">Stok</th>
               <th className="px-4 py-3 font-medium">Yayın</th>
               <th className="w-24 px-4 py-3 text-right font-medium">İşlem</th>
@@ -342,6 +362,10 @@ export function UrunListesi({ urunler }: { urunler: ListeUrunu[] }) {
 
                 <td className="px-4 py-3">
                   <Fiyat urun={urun} />
+                </td>
+
+                <td className="px-4 py-3">
+                  <SitedeFiyat urun={urun} />
                 </td>
 
                 <td className="px-4 py-3">

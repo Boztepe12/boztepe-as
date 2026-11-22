@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Search, X } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
 
 import { Girdi, Secim } from "@/components/ui/form";
 import { Buton } from "@/components/ui/buton";
+import { cn } from "@/lib/utils";
 
 export type FiltreDegeri = {
   arama: string;
@@ -96,6 +97,11 @@ export function UrunFiltreCubugu({
   }
 
   const filtreVar = Object.values(deger).some((d) => d.trim());
+  /* Arama dışındaki seçili filtre sayısı (sıralama dahil); kapalıyken düğmede görünür. */
+  const seciliSayisi = (["kategori", "marka", "yayin", "stok", "ozel", "sirala"] as const).filter((a) => deger[a].trim()).length
+    + (deger.min.trim() || deger.max.trim() ? 1 : 0);
+  /* Filtre seçiliyse açık gelir, yoksa kapalı; liste daha çok yer kaplar. */
+  const [acik, setAcik] = useState(seciliSayisi > 0);
 
   return (
     <form
@@ -103,7 +109,7 @@ export function UrunFiltreCubugu({
         olay.preventDefault();
         gonder();
       }}
-      className="mb-5 space-y-3 rounded-kart border border-cizgi bg-yuzey p-4"
+      className={cn("mb-5 rounded-kart border border-cizgi bg-yuzey p-4", acik && "space-y-3")}
     >
       <div className="flex flex-wrap gap-2">
         <div className="relative min-w-0 flex-1 basis-60">
@@ -119,6 +125,14 @@ export function UrunFiltreCubugu({
         <Buton type="submit" gorunum="ikincil">
           Ara
         </Buton>
+        <Buton type="button" gorunum="ikincil" onClick={() => setAcik((a) => !a)} aria-expanded={acik} aria-controls="urun-filtreleri">
+          <SlidersHorizontal className="size-4" />
+          Filtreler
+          {seciliSayisi > 0 && (
+            <span className="rakam rounded-full bg-kiremit px-1.5 text-xs leading-5 text-white">{seciliSayisi}</span>
+          )}
+          <ChevronDown className={cn("size-4 transition-transform", acik && "rotate-180")} />
+        </Buton>
         {filtreVar && (
           <Buton type="button" gorunum="sessiz" onClick={temizle} aria-label="Filtreleri temizle">
             <X className="size-4" />
@@ -127,7 +141,7 @@ export function UrunFiltreCubugu({
         )}
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div id="urun-filtreleri" className={cn("grid gap-2 sm:grid-cols-2 lg:grid-cols-4", !acik && "hidden")}>
         <Secim value={deger.kategori} onChange={(o) => gonder({ kategori: o.target.value })} aria-label="Kategori">
           <option value="">Tüm kategoriler</option>
           {secenekler.kategoriler.map((kategori) => (

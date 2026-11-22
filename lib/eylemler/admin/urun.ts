@@ -266,7 +266,7 @@ export async function urunSil(id: number): Promise<EylemSonucu> {
 /** Listeden hızlı açma/kapama — form açmadan yayın durumunu değiştirmek için. */
 export async function urunDurumDegistir(
   id: number,
-  alan: "aktif" | "oneCikan",
+  alan: "aktif" | "oneCikan" | "fiyatGizli",
   deger: boolean,
 ): Promise<EylemSonucu> {
   await eylemIcinOturum();
