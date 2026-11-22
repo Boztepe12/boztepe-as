@@ -29,6 +29,13 @@
       "when": 1795297419416,
       "tag": "0003_kataloglar",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795346131742,
+      "tag": "0004_supabase_api_kapali",
+      "breakpoints": true
     }
   ]
 }

@@ -5,11 +5,10 @@ config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
 import { PGlite } from "@electric-sql/pglite";
-import { neon } from "@neondatabase/serverless";
-import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 
 import { kalmisKilidiTemizle } from "../lib/db/kilit";
+import { uzakAdres, uzakBetikBaglantisi } from "../lib/db/uzak";
 import type { VeritabaniBaglantisi } from "../lib/db";
 import * as schema from "../lib/db/schema";
 import { gecerliSifreUret, sifreOzetle } from "../lib/auth/sifre";
@@ -19,8 +18,9 @@ import { sadelestir, slugOlustur } from "../lib/utils";
 /* Bağlantı                                                            */
 /* ------------------------------------------------------------------ */
 
-const adres = process.env.DATABASE_URL?.trim();
-const neonMu = Boolean(adres && /^postgres(ql)?:\/\//.test(adres));
+const adres = uzakAdres();
+const neonMu = adres !== null; // uzak veritabanı (Neon ya da Supabase gibi bir Postgres)
+const uzak = adres ? uzakBetikBaglantisi(adres, schema) : null;
 
 if (!neonMu) kalmisKilidiTemizle();
 const pglite = neonMu ? null : new PGlite("./.pglite");
@@ -32,7 +32,7 @@ const pglite = neonMu ? null : new PGlite("./.pglite");
  */
 const db = (
   neonMu
-    ? drizzleNeon(neon(adres!), { schema, casing: "snake_case" })
+    ? uzak!.db
     : drizzlePglite(pglite!, { schema, casing: "snake_case" })
 ) as unknown as VeritabaniBaglantisi;
 
@@ -621,7 +621,7 @@ const AYARLAR: Record<string, unknown> = {
 /* ------------------------------------------------------------------ */
 
 async function tohumla() {
-  console.log(`→ Tohumlama başlıyor (${neonMu ? "Neon" : "PGlite"})...`);
+  console.log(`→ Tohumlama başlıyor (${neonMu ? "uzak veritabanı" : "PGlite"})...`);
 
   /* Var olan veriyi temizle - tohumlama tekrar çalıştırılabilir olmalı. */
   await db.delete(schema.talepKalemleri);
@@ -816,11 +816,13 @@ async function tohumla() {
 tohumla()
   .then(async () => {
     await pglite?.close();
+    await uzak?.kapat();
     console.log("✓ Tohumlama tamamlandı.");
     process.exit(0);
   })
   .catch(async (hata) => {
     console.error("✗ Tohumlama başarısız:", hata);
     await pglite?.close();
+    await uzak?.kapat();
     process.exit(1);
   });

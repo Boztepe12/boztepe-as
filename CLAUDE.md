@@ -30,6 +30,7 @@ Kullanıcı maliyetin sıfır kalmasını istedi. Seçimler buna göre yapıldı
 | Veritabanı | Neon Postgres (ücretsiz katman) |
 | ORM | Drizzle |
 | Lokal geliştirme DB | PGlite — harici hesap gerekmeden Postgres uyumlu |
+| Canlı DB | Supabase Postgres (proje `gfoukosahxsaiajjkksa`); kod Neon'u da destekler (`lib/db/uzak.ts`) |
 | Auth | Kendi oturum katmanımız: bcrypt + `jose` ile imzalı JWT, httpOnly cookie |
 | Görsel depolama | Cloudinary (ücretsiz 25 GB) |
 | Hosting | Vercel Hobby |

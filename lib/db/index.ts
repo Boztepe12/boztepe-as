@@ -1,9 +1,9 @@
 import { PGlite } from "@electric-sql/pglite";
-import { neon } from "@neondatabase/serverless";
-import { drizzle as drizzleNeon, type NeonHttpDatabase } from "drizzle-orm/neon-http";
+import { type NeonHttpDatabase } from "drizzle-orm/neon-http";
 import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
 
 import { kalmisKilidiTemizle, sahipligiBirak, sahipligiYaz } from "./kilit";
+import { uzakAdres, uzakBaglanti } from "./uzak";
 import * as schema from "./schema";
 
 /**
@@ -17,8 +17,8 @@ export type VeritabaniBaglantisi = NeonHttpDatabase<typeof schema>;
 /**
  * Geliştirme ile üretim aynı SQL lehçesini kullanır ama farklı sürücülerle bağlanır.
  *
- * - Üretimde (Vercel) `DATABASE_URL` tanımlıdır ve Neon'un HTTP sürücüsü kullanılır.
- *   Serverless ortamda kalıcı bağlantı havuzu tutulamadığı için HTTP tercih edildi.
+ * - Üretimde (Vercel) `DATABASE_URL` tanımlıdır: Neon ise Neon'un HTTP sürücüsü,
+ *   değilse (Supabase gibi) standart Postgres sürücüsü — bkz. `lib/db/uzak.ts`.
  * - Geliştirmede hiçbir harici hesap gerekmesin diye PGlite devreye girer. PGlite,
  *   Postgres'in WASM derlemesidir; aynı şemayı ve aynı sorguları çalıştırır, veriyi
  *   proje kökündeki `.pglite/` klasöründe saklar.
@@ -26,8 +26,9 @@ export type VeritabaniBaglantisi = NeonHttpDatabase<typeof schema>;
  * Böylece Neon anahtarları gelmeden de tüm uygulama uçtan uca çalışabilir.
  */
 
-const baglantiAdresi = process.env.DATABASE_URL?.trim();
-export const neonKullaniliyor = Boolean(baglantiAdresi && /^postgres(ql)?:\/\//.test(baglantiAdresi));
+const baglantiAdresi = uzakAdres();
+/** Uzak veritabanı (Neon ya da Supabase gibi bir Postgres) kullanılıyor mu; adı tarihsel. */
+export const neonKullaniliyor = baglantiAdresi !== null;
 
 /*
  * Next.js geliştirme sunucusu her dosya değişikliğinde modülleri yeniden yükler.
@@ -67,7 +68,7 @@ function kapanistaKapat(pglite: PGlite) {
 
 function baglantiKur(): VeritabaniBaglantisi {
   if (neonKullaniliyor) {
-    return drizzleNeon(neon(baglantiAdresi!), { schema, casing: "snake_case" });
+    return uzakBaglanti(baglantiAdresi!, schema);
   }
 
   if (!global_.__boztepePglite) kalmisKilidiTemizle();
