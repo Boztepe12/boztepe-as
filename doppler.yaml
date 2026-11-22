@@ -1,5 +1,0 @@
-# Doppler: sitenin anahtarları "boztepe-as" projesinde (çalışma alanı overfitsoft).
-# `doppler run -- <komut>` anahtarları ortama verir; dev = bu bilgisayar, prd = canlı (Vercel).
-setup:
-  - project: boztepe-as
-    config: dev

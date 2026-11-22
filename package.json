@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "doppler run -- next dev",
-    "dev:local": "next dev",
+    "dev": "next dev",
     "predev": "node scripts/db-kontrol.mjs",
     "build": "next build",
     "start": "next start",
