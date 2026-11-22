@@ -27,10 +27,11 @@ Kullanıcı maliyetin sıfır kalmasını istedi. Seçimler buna göre yapıldı
 |---|---|
 | Framework | Next.js 16 (App Router) + TypeScript |
 | Stil | Tailwind CSS v4 |
-| Veritabanı | Neon Postgres (ücretsiz katman) |
+| Veritabanı | Supabase Postgres (canlı), Postgres.app (yerel) |
 | ORM | Drizzle |
-| Lokal geliştirme DB | Postgres.app (`localhost:5433`, veritabanı `boztepe-as-dev`, `.env.local`'daki `DATABASE_URL`); `DATABASE_URL` yoksa PGlite (kırılgan: iki süreç açarsa bozulur — sunucu çalışırken `npm install` yapmayın) |
-| Canlı DB | Supabase Postgres (proje `gfoukosahxsaiajjkksa`); kod Neon'u da destekler (`lib/db/uzak.ts`) |
+| Lokal geliştirme DB | Postgres.app (`localhost:5433`, veritabanı `boztepe-as-dev`, Doppler `boztepeas_yerel`'deki `DATABASE_URL`); `DATABASE_URL` yoksa PGlite (kırılgan: iki süreç açarsa bozulur — sunucu çalışırken `npm install` yapmayın) |
+| Canlı DB | Supabase Postgres (proje `gfoukosahxsaiajjkksa`), Vercel'den Transaction pooler (6543) ile; sürücü `pg` — postgres.js bu havuzda paralel sorgularda asılı kalıyordu (pipelining). Kod Neon'u da destekler (`lib/db/uzak.ts`) |
+| Ortam değişkenleri | Doppler `websites` projesi, ortam `boztepeas`: `boztepeas` = canlı (Vercel `boztepe-as` / Production'a Doppler eşitlemesiyle, tür **Dynamic**; `NEXT_PUBLIC_*` Unmasked olmalı, boş değer olmamalı — yoksa eşitleme kapanır), `boztepeas_yerel` = yerel (Supabase anahtarları bilerek boş). `doppler.yaml` + `npm run dev` / `db:*` = `doppler run --`. `.env.local` / `.env.vercel` yok |
 | Auth | Kendi oturum katmanımız: bcrypt + `jose` ile imzalı JWT, httpOnly cookie |
 | Dosya deposu | Supabase Storage, herkese açık `site` kovası (görseller ve PDF kataloglar); yerelde `public/yuklenenler` |
 | Hosting | Vercel Hobby |
@@ -109,7 +110,7 @@ https://selstok.vercel.app; eski `stok-yonetimi-steel.vercel.app` adresi yönlen
   (`vercel.json` cron, `Bearer CRON_SECRET`) ve paneldeki "Şimdi eşitle". "Şimdi eşitle" yalnız
   son eşitlemeden beri stokta değişenleri çeker; sitede silinen bir ürün yalnız "Tümünü yeniden
   oku" ile geri gelir.
-- Ortam değişkenleri (repo herkese açık — değerler yalnız `.env.local` ve Vercel'de):
+- Ortam değişkenleri (repo herkese açık — değerler yalnız Doppler'da):
   `SELSTOK_API_URL` (Selstok paneli: `https://selstok.vercel.app`),
   `SELSTOK_API_KEY` (Stok Yönetimi paneli → Web sitesi entegrasyonu → API anahtarı, firmanın sahibi
   oluşturur), `SELSTOK_WEBHOOK_SECRET` (aynı ekranda webhook eklenince verilen sır; webhook adresi
@@ -143,7 +144,8 @@ authenticated yetkileri kaldırıldı) — yeni tablo ekleyen migrasyon da RLS a
       SSH alias `pers`). `gh` hâlâ giriş yapılmamış durumda; push SSH üzerinden çalışıyor.
 - [ ] Kullanıcıdan alınacaklar: logo, marka rengi onayı, firma bilgileri, IBAN listesi,
       "Hakkımızda" metni, gerçek ürün fotoğrafları, admin e-postası, domain yönlendirme kararı
-- [ ] Canlı kurulum: Supabase (`gfoukosahxsaiajjkksa`) migrasyonu + `npm run db:yonetici`, Vercel
-      projesi ve ortam değişkenleri (şablon: git dışındaki `.env.vercel`)
+- [x] Canlı kurulum: Supabase (`gfoukosahxsaiajjkksa`) migrasyonları, Vercel projesi, Doppler
+      eşitlemesi (2026-11-22). Yönetici: `doppler run -p websites -c boztepeas -- env ADMIN_EMAIL=…
+      ADMIN_NAME=… ADMIN_PASSWORD=… npm run db:yonetici`
 - [ ] Canlıda Stok Yönetimi bağlantısı: Boztepe firması için Stok Yönetimi panelinde API
-      anahtarı + webhook (`/api/stok/webhook`) oluşturulup `SELSTOK_*` değişkenleri Vercel'e girilecek
+      anahtarı + webhook (`/api/stok/webhook`) oluşturulup `SELSTOK_*` değişkenleri Doppler `boztepeas`'a girilecek (dolu olarak)

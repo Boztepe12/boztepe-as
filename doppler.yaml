@@ -1,0 +1,6 @@
+# Yerel geliştirme Doppler'dan okur: `npm run dev`, `db:*` betikleri.
+# websites/boztepeas_yerel — yerel Postgres, deneme anahtarları; canlı değerler
+# websites/boztepeas'ta (Vercel'e Doppler eşitlemesiyle gider).
+setup:
+  project: websites
+  config: boztepeas_yerel
