@@ -6,10 +6,16 @@ import { toast } from "sonner";
 import { ExternalLink, Save } from "lucide-react";
 import Link from "next/link";
 
+import { BekleyenGorseller, bekleyenleriYukle } from "@/components/admin/bekleyen-gorsel";
 import { Panel } from "@/components/admin/panel-parcalari";
 import { Buton, ButonBaglanti } from "@/components/ui/buton";
 import { Alan, AlanIzgarasi, Girdi, MetinKutusu, Onay, Secim } from "@/components/ui/form";
-import { kategoriKaydet, markaKaydet } from "@/lib/eylemler/admin/katalog";
+import {
+  kategoriGorseliYukle,
+  kategoriKaydet,
+  markaKaydet,
+  markaLogosuYukle,
+} from "@/lib/eylemler/admin/katalog";
 
 export type KatalogKaydi = {
   id: number;
@@ -66,6 +72,8 @@ export function KatalogFormu({
     seoAciklama: kayit?.seoAciklama ?? "",
   });
   const [hatalar, setHatalar] = useState<Record<string, string>>({});
+  /* Yeni kayıtta seçilen görsel (kategori görseli / marka logosu), kayıttan sonra yüklenir. */
+  const [gorsel, setGorsel] = useState<File[]>([]);
   const [kaydediliyor, basla] = useTransition();
 
   const kategoriMi = tur === "kategori";
@@ -113,10 +121,20 @@ export function KatalogFormu({
         }
 
         setHatalar({});
-        toast.success(sonuc.mesaj ?? "Kaydedildi.");
 
-        if (kayit) router.refresh();
-        else if (sonuc.id) router.push(`${listeYolu}/${sonuc.id}`);
+        let eksik = 0;
+        if (!kayit && sonuc.id && gorsel.length > 0) {
+          eksik = await bekleyenleriYukle(
+            sonuc.id,
+            gorsel,
+            kategoriMi ? kategoriGorseliYukle : markaLogosuYukle,
+          );
+        }
+
+        toast.success(sonuc.mesaj ?? "Kaydedildi.");
+        /* Kaydedince listeye dönülür; görsel yüklenemediyse düzenlemede tekrar denensin. */
+        if (eksik > 0 && sonuc.id) router.push(`${listeYolu}/${sonuc.id}`);
+        else router.push(listeYolu);
       } catch {
         toast.error("Kaydedilemedi. Oturumunuz sona ermiş olabilir, sayfayı yenileyip deneyin.");
       }
@@ -125,6 +143,21 @@ export function KatalogFormu({
 
   return (
     <div className="space-y-5">
+      {!kayit && (
+        <BekleyenGorseller
+          baslik={kategoriMi ? "Kategori görseli" : "Marka logosu"}
+          aciklama={
+            kategoriMi
+              ? "Ana sayfadaki kategori kartında kullanılır. Kaydettiğinizde yüklenir."
+              : "Markalar sayfasında ve ana sayfadaki marka şeridinde görünür. Kaydettiğinizde yüklenir."
+          }
+          dosyalar={gorsel}
+          degisti={setGorsel}
+          kare={!kategoriMi}
+          pasif={kaydediliyor}
+        />
+      )}
+
       <Panel baslik="Bilgiler">
         <div className="space-y-4 p-5">
           {stoktan && (

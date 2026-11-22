@@ -15,7 +15,7 @@ export default async function YeniKatalogSayfasi() {
         <ArrowLeft className="size-3.5" />
         Kataloglar
       </Link>
-      <SayfaBasligi baslik="Yeni katalog" aciklama="Kaydettikten sonra kapak görselini (ya da markanın logosunu) ekleyebilirsiniz." />
+      <SayfaBasligi baslik="Yeni katalog" aciklama="Kapak görselini, dosyayı ve bilgileri doldurup kaydedin." />
       <KatalogKayitFormu gruplar={await katalogGruplari()} />
     </div>
   );

@@ -20,7 +20,7 @@ export default function YeniAfisSayfasi() {
 
       <SayfaBasligi
         baslik="Yeni afiş"
-        aciklama="Kaydettikten sonra afiş görselini ekleyebilirsiniz."
+        aciklama="Görselleri ve metni doldurup kaydedin."
       />
 
       <AfisFormu />

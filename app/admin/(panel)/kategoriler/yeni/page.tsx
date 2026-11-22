@@ -29,7 +29,7 @@ export default async function YeniKategoriSayfasi() {
 
       <SayfaBasligi
         baslik="Yeni kategori"
-        aciklama="Kaydettikten sonra kategori görselini ekleyebilirsiniz."
+        aciklama="Görseli ve bilgileri doldurup kaydedin."
       />
 
       {stokBaglantisiVar() ? (

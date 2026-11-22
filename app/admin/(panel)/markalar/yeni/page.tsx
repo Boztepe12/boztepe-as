@@ -20,7 +20,7 @@ export default function YeniMarkaSayfasi() {
 
       <SayfaBasligi
         baslik="Yeni marka"
-        aciklama="Kaydettikten sonra marka logosunu ekleyebilirsiniz."
+        aciklama="Logoyu ve bilgileri doldurup kaydedin."
       />
 
       <KatalogFormu tur="marka" />

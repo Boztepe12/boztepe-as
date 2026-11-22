@@ -5,10 +5,11 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 
+import { BekleyenGorseller, bekleyenleriYukle } from "@/components/admin/bekleyen-gorsel";
 import { Panel } from "@/components/admin/panel-parcalari";
 import { Buton, ButonBaglanti } from "@/components/ui/buton";
 import { Alan, AlanIzgarasi, Girdi, Onay } from "@/components/ui/form";
-import { afisKaydet } from "@/lib/eylemler/admin/icerik";
+import { afisKaydet, afisMasaustuGorseliYukle, afisMobilGorseliYukle } from "@/lib/eylemler/admin/icerik";
 
 export type FormAfisi = {
   id: number;
@@ -43,6 +44,9 @@ export function AfisFormu({ afis }: { afis?: FormAfisi }) {
     bitisTarihi: tarihGirdisi(afis?.bitisTarihi ?? null),
   });
   const [hatalar, setHatalar] = useState<Record<string, string>>({});
+  /* Yeni afişte seçilen görseller, kayıttan sonra yüklenir. */
+  const [masaustu, setMasaustu] = useState<File[]>([]);
+  const [mobil, setMobil] = useState<File[]>([]);
   const [kaydediliyor, basla] = useTransition();
 
   function guncelle<T extends keyof typeof deger>(alan: T, yeni: (typeof deger)[T]) {
@@ -68,10 +72,17 @@ export function AfisFormu({ afis }: { afis?: FormAfisi }) {
         }
 
         setHatalar({});
-        toast.success(sonuc.mesaj ?? "Kaydedildi.");
 
-        if (afis) router.refresh();
-        else if (sonuc.id) router.push(`/admin/afisler/${sonuc.id}`);
+        let eksik = 0;
+        if (!afis && sonuc.id) {
+          eksik += await bekleyenleriYukle(sonuc.id, masaustu, afisMasaustuGorseliYukle);
+          eksik += await bekleyenleriYukle(sonuc.id, mobil, afisMobilGorseliYukle);
+        }
+
+        toast.success(sonuc.mesaj ?? "Kaydedildi.");
+        /* Kaydedince listeye dönülür; görsel yüklenemediyse düzenlemede tekrar denensin. */
+        if (eksik > 0 && sonuc.id) router.push(`/admin/afisler/${sonuc.id}`);
+        else router.push("/admin/afisler");
       } catch {
         toast.error("Kaydedilemedi. Oturumunuz sona ermiş olabilir, sayfayı yenileyip deneyin.");
       }
@@ -80,6 +91,25 @@ export function AfisFormu({ afis }: { afis?: FormAfisi }) {
 
   return (
     <div className="space-y-5">
+      {!afis && (
+        <>
+          <BekleyenGorseller
+            baslik="Afiş görseli"
+            aciklama="Geniş ekranlarda kullanılır. Önerilen ölçü 1600 × 700 piksel. Kaydettiğinizde yüklenir."
+            dosyalar={masaustu}
+            degisti={setMasaustu}
+            pasif={kaydediliyor}
+          />
+          <BekleyenGorseller
+            baslik="Mobil görsel"
+            aciklama="Boş bırakılırsa telefonlarda da yukarıdaki görsel kullanılır."
+            dosyalar={mobil}
+            degisti={setMobil}
+            kare
+            pasif={kaydediliyor}
+          />
+        </>
+      )}
       <Panel baslik="Afiş metni">
         <div className="space-y-4 p-5">
           <Alan etiket="Başlık" zorunlu hata={hatalar.baslik}>

@@ -6,10 +6,11 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ExternalLink, Plus, Save, Trash2 } from "lucide-react";
 
+import { BekleyenGorseller, bekleyenleriYukle } from "@/components/admin/bekleyen-gorsel";
 import { Panel } from "@/components/admin/panel-parcalari";
 import { Buton, ButonBaglanti } from "@/components/ui/buton";
 import { Alan, AlanIzgarasi, Girdi, MetinKutusu, Onay, Secim } from "@/components/ui/form";
-import { urunKaydet } from "@/lib/eylemler/admin/urun";
+import { urunGorseliYukle, urunKaydet } from "@/lib/eylemler/admin/urun";
 
 export type FormUrunu = {
   id: number;
@@ -139,6 +140,8 @@ export function UrunFormu({
   const [deger, setDeger] = useState<FormDegeri>(() => baslangicDegeri(urun));
   const [ozellikler, setOzellikler] = useState<FormOzelligi[]>(baslangicOzellikleri);
   const [hatalar, setHatalar] = useState<Record<string, string>>({});
+  /* Yeni üründe kayıttan önce seçilen fotoğraflar; kayıttan sonra yüklenir. */
+  const [fotograflar, setFotograflar] = useState<File[]>([]);
   const [kaydediliyor, basla] = useTransition();
 
   function guncelle<T extends keyof FormDegeri>(alan: T, yeni: FormDegeri[T]) {
@@ -188,15 +191,17 @@ export function UrunFormu({
         }
 
         setHatalar({});
-        toast.success(sonuc.mesaj ?? "Kaydedildi.");
 
-        if (urun) {
-          router.refresh();
-        } else if (sonuc.id) {
-          /* Yeni üründe fotoğraf ancak kayıttan sonra eklenebildiği için düzenleme
-             ekranına geçiyoruz; yönetici aynı akış içinde görselleri yükleyebilsin. */
-          router.push(`/admin/urunler/${sonuc.id}`);
+        /* Yeni ürünün fotoğrafları: kayıt artık var, sırayla yüklenir. Biri
+           yüklenemezse ürünün düzenleme ekranına gidilir ki orada tekrar denensin. */
+        let eksik = 0;
+        if (!urun && sonuc.id && fotograflar.length > 0) {
+          eksik = await bekleyenleriYukle(sonuc.id, fotograflar, urunGorseliYukle);
         }
+
+        toast.success(sonuc.mesaj ?? "Kaydedildi.");
+        if (eksik > 0 && sonuc.id) router.push(`/admin/urunler/${sonuc.id}`);
+        else router.push("/admin/urunler");
       } catch {
         /* Eylem hiç dönmediyse (oturum düştü, ağ koptu) form açık kalmalı ki
            doldurulan bilgiler kaybolmasın. */
@@ -207,6 +212,17 @@ export function UrunFormu({
 
   return (
     <div className="space-y-5 pb-24">
+      {!urun && (
+        <BekleyenGorseller
+          baslik="Fotoğraflar"
+          aciklama="Fotoğraflar ürünü kaydettiğinizde yüklenir. İlk sıradaki fotoğraf kapak olur."
+          dosyalar={fotograflar}
+          degisti={setFotograflar}
+          coklu
+          pasif={kaydediliyor}
+        />
+      )}
+
       <Panel baslik="Temel bilgiler">
         <div className="space-y-4 p-5">
           <Alan etiket="Ürün adı" zorunlu hata={hatalar.ad}>

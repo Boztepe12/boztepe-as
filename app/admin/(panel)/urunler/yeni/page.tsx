@@ -23,7 +23,7 @@ export default async function YeniUrunSayfasi() {
 
       <SayfaBasligi
         baslik="Yeni ürün"
-        aciklama="Ürünü kaydettikten sonra fotoğraflarını ekleyebilirsiniz."
+        aciklama="Fotoğrafları ve bilgileri doldurup kaydedin."
       />
 
       <UrunFormu secenekler={secenekler} />

@@ -5,10 +5,11 @@ import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ExternalLink, FileText, Link2, Save, Upload } from "lucide-react";
 
+import { BekleyenGorseller, bekleyenleriYukle } from "@/components/admin/bekleyen-gorsel";
 import { Panel } from "@/components/admin/panel-parcalari";
 import { Buton, ButonBaglanti } from "@/components/ui/buton";
 import { Alan, AlanIzgarasi, Girdi, MetinKutusu, Onay } from "@/components/ui/form";
-import { katalogKaydet, katalogPdfYuklemeHazirla } from "@/lib/eylemler/admin/kataloglar";
+import { katalogKapagiYukle, katalogKaydet, katalogPdfYuklemeHazirla } from "@/lib/eylemler/admin/kataloglar";
 import { cn } from "@/lib/utils";
 
 export type FormKatalogu = {
@@ -82,6 +83,8 @@ export function KatalogKayitFormu({ katalog, gruplar = [] }: { katalog?: FormKat
   );
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hatalar, setHatalar] = useState<Record<string, string>>({});
+  /* Yeni katalogda seçilen kapak görseli, kayıttan sonra yüklenir. */
+  const [kapak, setKapak] = useState<File[]>([]);
   const [kaydediliyor, basla] = useTransition();
 
   function hatayiSil(alan: string) {
@@ -135,9 +138,14 @@ export function KatalogKayitFormu({ katalog, gruplar = [] }: { katalog?: FormKat
           return;
         }
         setHatalar({});
+        let eksik = 0;
+        if (!katalog && sonuc.id && kapak.length > 0) {
+          eksik = await bekleyenleriYukle(sonuc.id, kapak, katalogKapagiYukle);
+        }
         toast.success(sonuc.mesaj ?? "Kaydedildi.");
-        if (katalog) router.refresh();
-        else if (sonuc.id) router.push(`/admin/kataloglar/${sonuc.id}`);
+        /* Kaydedince listeye dönülür; kapak yüklenemediyse düzenlemede tekrar denensin. */
+        if (eksik > 0 && sonuc.id) router.push(`/admin/kataloglar/${sonuc.id}`);
+        else router.push("/admin/kataloglar");
       } catch {
         toast.error("Kaydedilemedi. Oturumunuz sona ermiş olabilir, sayfayı yenileyip deneyin.");
       }
@@ -146,6 +154,16 @@ export function KatalogKayitFormu({ katalog, gruplar = [] }: { katalog?: FormKat
 
   return (
     <div className="space-y-5">
+      {!katalog && (
+        <BekleyenGorseller
+          baslik="Kapak görseli"
+          aciklama="Kataloğun kapağı ya da markanın logosu; sayfadaki kartta görünür. Kaydettiğinizde yüklenir."
+          dosyalar={kapak}
+          degisti={setKapak}
+          kare
+          pasif={kaydediliyor}
+        />
+      )}
       <Panel baslik="Katalog">
         <div className="space-y-4 p-5">
           <AlanIzgarasi>
